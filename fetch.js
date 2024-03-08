@@ -2,12 +2,13 @@ import {ReactNativeBlobUtilConfig} from './types';
 import URIUtil from './utils/uri';
 import fs from './fs';
 import getUUID from './utils/uuid';
-import {NativeEventEmitter} from 'react-native';
+import {NativeEventEmitter,RCTDeviceEventEmitter} from 'react-native';
 import {FetchBlobResponse} from './class/ReactNativeBlobUtilBlobResponse';
 import CanceledFetchError from './class/ReactNativeBlobUtilCanceledFetchError';
 import ReactNativeBlobUtil from './codegenSpecs/NativeBlobUtils';
 
 const eventEmitter = new NativeEventEmitter(ReactNativeBlobUtil);
+
 
 // register message channel event handler.
 eventEmitter.addListener('ReactNativeBlobUtilMessage', (e) => {
@@ -245,7 +246,6 @@ export function fetch(...args: any): Promise {
          * @param responseInfo {Object.<>}
          */
         req(options, taskId, method, url, headers || {}, body, (err, rawType, data, responseInfo) => {
-
             // task done, remove event listeners
             subscription.remove();
             subscriptionUpload.remove();
@@ -260,8 +260,6 @@ export function fetch(...args: any): Promise {
             promise.cancel = () => {
             };
 
-            if(!responseInfo) responseInfo = {}; // should not be null / undefined
-
             if (err)
                 reject(new Error(err, respInfo));
             else {
@@ -271,10 +269,9 @@ export function fetch(...args: any): Promise {
                     if (options.session)
                         fs.session(options.session).add(data);
                 }
+                respInfo.rnfbEncode = rawType;
                 if ('uninit' in respInfo && respInfo.uninit) // event didn't fire yet so we override it here
                     respInfo = responseInfo;
-
-                respInfo.rnfbEncode = rawType;
                 resolve(new FetchBlobResponse(taskId, respInfo, data));
             }
 
@@ -344,7 +341,5 @@ export function fetch(...args: any): Promise {
         promiseReject(new CanceledFetchError('canceled'));
     };
     promise.taskId = taskId;
-
     return promise;
-
 }

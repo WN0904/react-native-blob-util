@@ -425,7 +425,6 @@ class ReactNativeBlobUtilFS {
         } else {
             promise.reject("ReactNativeBlobUtil.getSDCardDir", "External storage not mounted");
         }
-
     }
 
     static public void getSDCardApplicationDir(ReactApplicationContext ctx, Promise promise) {

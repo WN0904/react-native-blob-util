@@ -139,12 +139,10 @@ class ReactNativeBlobUtilImpl {
 
                 @Override
                 public void onHostPause() {
-
                 }
 
                 @Override
                 public void onHostDestroy() {
-
                 }
             };
             RCTContext.addLifecycleEventListener(listener);
@@ -334,7 +332,6 @@ class ReactNativeBlobUtilImpl {
             i.setType("*/*");
         promiseTable.put(GET_CONTENT_INTENT, promise);
         RCTContext.startActivityForResult(i, GET_CONTENT_INTENT, null);
-
     }
 
     public void addCompleteDownload(ReadableMap config, Promise promise) {
@@ -363,7 +360,6 @@ class ReactNativeBlobUtilImpl {
         } catch (Exception ex) {
             promise.reject("EUNSPECIFIED", ex.getLocalizedMessage());
         }
-
     }
 
     public void getSDCardDir(Promise promise) {

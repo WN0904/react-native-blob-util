@@ -133,13 +133,6 @@ public class ReactNativeBlobUtilMediaCollection {
             try {
                 Context appCtx = ctx.getApplicationContext();
                 ContentResolver resolver = appCtx.getContentResolver();
-
-                // set pending doesn't work right now. We would have to requery for the item
-                //ContentValues contentValues = new ContentValues();
-                //contentValues.put(MediaStore.MediaColumns.IS_PENDING, 1);
-                //resolver.update(fileUri, contentValues, null, null);
-
-                // write data
                 OutputStream stream = null;
                 Uri uri = null;
 
@@ -155,11 +148,8 @@ public class ReactNativeBlobUtilMediaCollection {
                             promise.reject("ENOENT", "No such file ('" + normalizedData + "')");
                             return false;
                         }
-
-
                         FileInputStream fin = new FileInputStream(src);
                         FileOutputStream out = new FileOutputStream(descr.getFileDescriptor());
-
                         if (transformFile) {
                             // in order to transform file, we must load the entire file onto memory
                             int length = (int) src.length();
@@ -178,8 +168,6 @@ public class ReactNativeBlobUtilMediaCollection {
                                 out.write(buf, 0, read);
                             }
                         }
-
-
                         fin.close();
                         out.close();
                         descr.close();
@@ -188,10 +176,6 @@ public class ReactNativeBlobUtilMediaCollection {
                         promise.reject(new IOException("Failed to get output stream."));
                         return false;
                     }
-
-                    //contentValues.clear();
-                    //contentValues.put(MediaStore.Video.Media.IS_PENDING, 0);
-                    //appCtx.getContentResolver().update(fileUri, contentValues, null, null);
                     stream = resolver.openOutputStream(fileUri);
                     if (stream == null) {
                         promise.reject(new IOException("Failed to get output stream."));
@@ -207,12 +191,6 @@ public class ReactNativeBlobUtilMediaCollection {
                         stream.close();
                     }
                 }
-
-                // remove pending
-                //contentValues = new ContentValues();
-                //contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0);
-                //resolver.update(fileUri, contentValues, null, null);
-
             } catch (IOException e) {
                 promise.reject("ReactNativeBlobUtil.createMediaFile", "Cannot write to file, file might not exist");
                 return false;
@@ -226,11 +204,9 @@ public class ReactNativeBlobUtilMediaCollection {
     public static void copyToInternal(Uri contenturi, String destpath, Promise promise) {
         Context appCtx = ReactNativeBlobUtilImpl.RCTContext.getApplicationContext();
         ContentResolver resolver = appCtx.getContentResolver();
-
         InputStream in = null;
         OutputStream out = null;
         File f = new File((destpath));
-
         if (!f.exists()) {
             try {
                 File parent = f.getParentFile();
@@ -247,7 +223,6 @@ public class ReactNativeBlobUtilMediaCollection {
                 promise.reject("ReactNativeBlobUtil.copyToInternal: Could not create file: " + ioException.getLocalizedMessage());
             }
         }
-
         try {
             in = resolver.openInputStream(contenturi);
             out = new FileOutputStream(destpath);
@@ -276,7 +251,6 @@ public class ReactNativeBlobUtilMediaCollection {
                 }
             }
         }
-
         promise.resolve("");
     }
 

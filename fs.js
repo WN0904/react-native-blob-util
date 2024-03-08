@@ -117,6 +117,7 @@ function readStream(
     bufferSize?: number,
     tick?: number = 10
 ): Promise<ReactNativeBlobUtilReadStream> {
+	ReactNativeBlobUtil.readStream(path, encoding, bufferSize, tick);
     if (typeof path !== 'string') {
         return Promise.reject(addCode('EINVAL', new TypeError('Missing argument "path" ')));
     }
