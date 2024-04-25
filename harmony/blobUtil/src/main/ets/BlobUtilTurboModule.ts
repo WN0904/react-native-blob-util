@@ -1,4 +1,4 @@
-import { TurboModule, RNOHError,Descriptor } from 'rnoh/ts';
+import { TurboModule, RNOHError,Descriptor } from '@rnoh/react-native-openharmony/ts';
 import ReactNativeBlobUtilFS from './ReactNativeBlobUtil/ReactNativeBlobUtilFS';
 import common from '@ohos.app.ability.common';
 import ReactNativeBlobUtilImpl from './ReactNativeBlobUtil/ReactNativeBlobUtilImpl';

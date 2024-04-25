@@ -5,7 +5,7 @@ import util from '@ohos.util';
 import HashMap from '@ohos.util.HashMap';
 import { ReactNativeBlobUtilConst } from '../utils/ReactNativeBlobUtilConst';
 import common from '@ohos.app.ability.common';
-import { EventEmitter,Descriptor,TurboModuleContext } from 'rnoh/ts';
+import { EventEmitter,Descriptor,TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
 import { promptAction } from '@kit.ArkUI';
 import { buffer } from '@kit.ArkTS';
 

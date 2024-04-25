@@ -1,5 +1,5 @@
 import common from '@ohos.app.ability.common';
-import { TurboModuleContext } from 'rnoh/ts';
+import { TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
 import ReactNativeBlobUtilFS from './ReactNativeBlobUtilFS';
 import ReactNativeBlobUtilStream, { ReactNativeBlobUtilReadStream } from './ReactNativeBlobUtilStream';
 import { AsyncCallback } from '@ohos.base';
