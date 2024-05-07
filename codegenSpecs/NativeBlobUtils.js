@@ -27,12 +27,12 @@ export interface Spec extends TurboModule {
         LegacyRingtoneDir: string,
         LegacySDCardDir: string,
     |};
-    //+fetchBlobForm: (options: Object, taskId: string, method: string, url: string, headers: Object, form: Array<any>, callback: (value: Array<any>) => void) => void;
-    //+fetchBlob: (options: Object, taskId: string, method: string, url: string, headers: Object, body: string, callback: (value: Array<any>) => void) => void;
+    +fetchBlobForm: (options: Object, taskId: string, method: string, url: string, headers: Object, form: Array<any>, callback: (value: Array<any>) => void) => void;
+    +fetchBlob: (options: Object, taskId: string, method: string, url: string, headers: Object, body: string, callback: (value: Array<any>) => void) => void;
     +createFile: (path: string, data: string, encoding: string) => Promise<string>;   
     +createFileASCII: (path: string, data: Array<any>) => Promise<void>;
-    //+pathForAppGroup: (groupName: string) => Promise<string>;
-    //+syncPathAppGroup: (groupName: string) => string;
+    +pathForAppGroup: (groupName: string) => Promise<string>;
+    +syncPathAppGroup: (groupName: string) => string;
     +exists: (path: string, callback: (value: Array<boolean>) => void) => void;
     +writeFile: (path: string, encoding: string, data: string, transformFile: boolean, append: boolean) => Promise<number>;
     +writeFileArray: (path: string, data: Array<any>, append: boolean) => Promise<number>;
@@ -52,9 +52,9 @@ export interface Spec extends TurboModule {
     +hash: (path: string, algorithm: string) => Promise<string>;
     +readStream: (path: string, encoding: string, bufferSize: number, tick: number, streamId: string) => void;
     //+getEnvironmentDirs: (callback: (value: Array<any>) => void) => void;
-    //+cancelRequest: (taskId: string, callback: (value: Array<any>) => void) => void;
-    //+enableProgressReport: (taskId: string, interval: number, count: number) => void;
-    //+enableUploadProgressReport: (taskId: string, interval: number, count: number) => void;
+    +cancelRequest: (taskId: string, callback: (value: Array<any>) => void) => void;
+    +enableProgressReport: (taskId: string, interval: number, count: number) => void;
+    +enableUploadProgressReport: (taskId: string, interval: number, count: number) => void;
     +slice: (src: string, dest: string, start: number, end: number) => Promise<string>;
     +presentOptionsMenu: (uri: string, scheme: string) => Promise<Array<any>>;
     +presentOpenInMenu: (uri: string, scheme: string) => Promise<Array<any>>;

@@ -1,12 +1,8 @@
 
-import fs, { Options, WriteOptions} from '@ohos.file.fs';
-import emitter from '@ohos.events.emitter'
+import fs from '@ohos.file.fs';
 import util from '@ohos.util';
 import HashMap from '@ohos.util.HashMap';
-import { ReactNativeBlobUtilConst } from '../utils/ReactNativeBlobUtilConst';
-import common from '@ohos.app.ability.common';
-import { EventEmitter,Descriptor,TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
-import { promptAction } from '@kit.ArkUI';
+import { Descriptor, TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
 import { buffer } from '@kit.ArkTS';
 
 export type BlobUtilViewDescriptor = Descriptor<"RNCBlobUtil">
@@ -59,35 +55,49 @@ export default class ReactNativeBlobUtilStream {
       this.stream = stream
       fs.closeSync(file);
       callback(null, null, uuid)
-      console.log('writeStream finish----------', uuid)
-      promptAction.showToast({
-        message: '写流成功'
-      })
     } catch (err) {
-      console.log('writeStream exception----------', err)
       callback("EUNSPECIFIED", "Failed to create write stream at path `" + filePath + "`; " + err.message);
     }
   }
 
-  readStream(filePath: string, encoding: string, bufferSize: number, tick: number, streamId: string): Promise<ReactNativeBlobUtilReadStream> {
+  readStream(filePath: string, encoding: string, bufferSize: number, tick: number, streamId: string): void {
     let inputStream = fs.createStreamSync(filePath, 'r+');
-    if (encoding.toLowerCase() === 'utf8') {
-      let buf = new ArrayBuffer(bufferSize);
-      let readSize = 0;
-      let readLen = inputStream.readSync(buf, {
-        offset: readSize
-      });
-      readSize += readLen;
+    let buf = new ArrayBuffer(bufferSize);
+    let readSize = 0;
+    let readLen = inputStream.readSync(buf, {
+      offset: readSize
+    });
+    readSize += readLen;
+    if (readLen === bufferSize) {
       while (readLen > 0) {
         readLen = inputStream.readSync(buf, {
           offset: readSize
         });
         readSize += readLen
       }
-      inputStream.closeSync();
     }
-    return new Promise((resolve, reject) => {
-      promptAction.showToast({message:'读流成功'})
+    inputStream.closeSync();
+    let bytes = buffer.from(buf, 0, readLen);
+    let detail = null;
+
+    if (encoding.toLowerCase() === 'utf8') {
+      detail = bytes.toString('utf-8');
+    } else if (encoding.toLowerCase() === 'base64') {
+      detail = buffer.transcode(bytes, 'utf-8', 'base64');
+    } else if (encoding.toLowerCase() === 'ascii') {
+      detail = buffer.transcode(bytes, 'utf-8', 'ascii');
+    }
+
+    this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilFilesystem', {
+      event: 'data',
+      streamId: streamId,
+      detail: detail
+    })
+
+    this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilFilesystem', {
+      event: 'end',
+      streamId: streamId,
+      detail: ''
     })
   }
 
@@ -107,9 +117,6 @@ export default class ReactNativeBlobUtilStream {
         } else {
           if (bytesWritten) {
             callback([]);
-            promptAction.showToast({
-              message: "成功写入Chunk流"
-            })
           }
         }
       });
@@ -134,7 +141,6 @@ export default class ReactNativeBlobUtilStream {
         } else {
           if (bytesWritten) {
             callback([]);
-            promptAction.showToast({message: "成功写入Chunk数组流"})
           }
         }
       });
@@ -151,7 +157,6 @@ export default class ReactNativeBlobUtilStream {
       console.error("close stream failed with error message: " + err.message + ", error code: " + err.code);
     } else {
       console.info("close stream succeed");
-      promptAction.showToast({message:'成功关闭流'})
     }
     })
   }

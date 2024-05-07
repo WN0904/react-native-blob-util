@@ -1,9 +1,7 @@
-import { TurboModule, RNOHError,Descriptor } from '@rnoh/react-native-openharmony/ts';
-import ReactNativeBlobUtilFS from './ReactNativeBlobUtil/ReactNativeBlobUtilFS';
+import { TurboModule } from '@rnoh/react-native-openharmony/ts';
 import common from '@ohos.app.ability.common';
 import ReactNativeBlobUtilImpl from './ReactNativeBlobUtil/ReactNativeBlobUtilImpl';
-import { AsyncCallback } from '@ohos.base';
-import { ReactNativeBlobUtilReadStream } from './ReactNativeBlobUtil/ReactNativeBlobUtilStream';
+import ConfigType from './ReactNativeBlobUtil/ReactNativeBlobUtilConfig'
 
 export class BlobUtilTurboModule extends TurboModule {
   private context: common.UIAbilityContext = this.ctx.uiAbilityContext;
@@ -13,16 +11,48 @@ export class BlobUtilTurboModule extends TurboModule {
     return this.reactNativeBlobUtilImpl.getSystemFolders();
   }
 
+  fetchBlob(options: ConfigType, taskId: string, method: string, url: string, headers: Object, form: Array<any> | string, callback: (err: any, rawType: string, data: string, responseInfo: any) => void) {
+    this.reactNativeBlobUtilImpl.fetchBlob(options, taskId, method, url, headers, form, callback);
+  }
+
+  fetchBlobForm(options: ConfigType, taskId: string, method: string, url: string, headers: Object, form: Array<any> | string, callback: (err: any, rawType: string, data: string, responseInfo: any) => void) {
+    this.reactNativeBlobUtilImpl.fetchBlobForm(options, taskId, method, url, headers, form, callback);
+  }
+
+  pathForAppGroup() {
+    // only ios
+  }
+
+  async syncPathAppGroup() {
+    // only ios
+  }
+
+  cancelRequest(taskId: string, callback: (value: Array<any>) => void) {
+    this.reactNativeBlobUtilImpl.cancelRequest(taskId, callback);
+  }
+
+  enableProgressReport(taskId: string, interval: number, count: number) {
+    this.reactNativeBlobUtilImpl.enableProgressReport(taskId, interval, count);
+  }
+
+  enableUploadProgressReport(taskId: string, interval: number, count: number) {
+    this.reactNativeBlobUtilImpl.enableUploadProgressReport(taskId, interval, count);
+  }
+
+  removeSession(paths: Array<string>, callback: (err: any) => void) {
+    this.reactNativeBlobUtilImpl.removeSession(paths, callback);
+  }
+
   createFile(path: string, data: string, encoding: string):Promise<string> {
     return this.reactNativeBlobUtilImpl.createFile(path,data,encoding)
   }
 
-  stat(path:string,callback: (err:any,stat:any) => void) {
-    this.reactNativeBlobUtilImpl.stat(path,callback)
+  stat(path: string, callback: (err: any, stat: any) => void) {
+    this.reactNativeBlobUtilImpl.stat(path, callback)
   }
 
-  cp(path:string,dest:string,callback: (value: Array<any>) => void) {
-    this.reactNativeBlobUtilImpl.cp(path,dest,callback)
+  cp(path: string, dest: string, callback: (err: any, stat: any) => void) {
+    this.reactNativeBlobUtilImpl.cp(path, dest, callback)
   }
 
   writeFile(path: string, encoding: string, data: string, transformFile: boolean, append: boolean):Promise<number> {
@@ -36,12 +66,12 @@ export class BlobUtilTurboModule extends TurboModule {
   writeStream(path: string, encoding: string, appendData: boolean, callback: (errCode,errMsg,streamId?:string) => void) {
     this.reactNativeBlobUtilImpl.writeStream(path,encoding,appendData,callback)
   }
-  readStream(path:string,encoding:string,bufferSize:number,tick:number,streamId:string):Promise<ReactNativeBlobUtilReadStream>{
+  readStream(path:string,encoding:string,bufferSize:number,tick:number,streamId:string):void{
     return this.reactNativeBlobUtilImpl.readStream(path,encoding,bufferSize,tick,streamId)
   }
 
-  unlink(path:string){
-    this.reactNativeBlobUtilImpl.unlink(path)
+  unlink(path:string, callback: (err: any) => void){
+    this.reactNativeBlobUtilImpl.unlink(path, callback)
   }
 
   mkdir(path:string):Promise<void>{
@@ -64,19 +94,19 @@ export class BlobUtilTurboModule extends TurboModule {
     this.reactNativeBlobUtilImpl.writeArrayChunk(streamId,withArray,callback)
   }
 
-  exists(path: string, callback: (value: Array<boolean>) => void){
+  exists(path: string, callback: (value: boolean) => void){
     this.reactNativeBlobUtilImpl.exists(path,callback)
   }
 
-  readFile(path: string, encoding: string, transformFile: boolean):Promise<Array<any>>{
+  readFile(path: string, encoding: string, transformFile: boolean):Promise<any>{
     return this.reactNativeBlobUtilImpl.readFile(path,encoding,transformFile)
   }
 
-  lstat(path: string, callback: (value: Array<any>) => void){
+  lstat(path: string, callback: (err: any, stat: any) => void){
    this.reactNativeBlobUtilImpl.lstat(path,callback)
   }
 
-  mv(path: string, dest: string, callback: (value: Array<any>) => void){
+  mv(path: string, dest: string, callback: (err: any, res: any) => void){
     this.reactNativeBlobUtilImpl.mv(path,dest,callback)
   }
 
@@ -84,7 +114,7 @@ export class BlobUtilTurboModule extends TurboModule {
     return this.reactNativeBlobUtilImpl.hash(path,algorithm)
   }
 
-  df(callback: (value: Array<any>) => void){
+  df(callback: (err: any, stat: Object) => void){
     this.reactNativeBlobUtilImpl.df(callback)
   }
 

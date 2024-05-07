@@ -1,16 +1,11 @@
 import HashMap from '@ohos.util.HashMap';
 import common from '@ohos.app.ability.common';
-import fs, { Options } from '@ohos.file.fs';
-import { ReactNativeBlobUtilConst } from '../utils/ReactNativeBlobUtilConst';
+import fs from '@ohos.file.fs';
 import { BusinessError } from '@ohos.base';
-import { ArrayList } from '@kit.ArkTS';
 import { promptAction } from '@kit.ArkUI';
 import buffer from '@ohos.buffer';
 import hash from '@ohos.file.hash';
 import statvfs from "@ohos.file.statvfs"
-import { picker } from '@kit.CoreFileKit';
-import photoAccessHelper from '@ohos.file.photoAccessHelper';
-
 
 export default class ReactNativeBlobUtilFS {
 
@@ -59,34 +54,27 @@ export default class ReactNativeBlobUtilFS {
   }
 
   createFile(path:string,data:string,encoding:string):Promise<string> {
-    try {
-      if(encoding !== 'utf8'){
-        promptAction.showToast({message:'当前仅支持utf-8'})
-      }
-      encoding ='utf-8';
-      let created = fs.accessSync(path)
-      if(!created){
-        let file = fs.openSync(path, fs.OpenMode.CREATE);
+    return new Promise((res, rej) => {
+      try {
+        if(encoding !== 'utf8'){
+          rej(null)
+          return
+        }
+        encoding ='utf-8';
+        let created = fs.accessSync(path)
+        if(!created){
+          let file = fs.openSync(path, fs.OpenMode.CREATE);
+          fs.closeSync(file);
+        }
+        let file = fs.openSync(path, fs.OpenMode.READ_WRITE);
+        fs.writeSync(file.fd, data,{encoding:encoding });
         fs.closeSync(file);
+        res(path)
+      }catch(err) {
+        console.error("createFile failed with error message: " + err.message + ", error code: " + err.code);
+        rej(err)
       }
-      let file = fs.openSync(path, fs.OpenMode.READ_WRITE);
-      let writeLen = fs.writeSync(file.fd, data,{encoding:encoding });
-      if(writeLen==-1){
-        console.log("write data to file succeed and size is:" + writeLen)
-      }else{
-        console.log('success')
-      }
-      fs.closeSync(file);
-      promptAction.showToast({message:'创建文件并写入数据成功'})
-      return new Promise((resolve)=>{
-        resolve(path)
-      })
-    }catch(err) {
-      promptAction.showToast({message:'创建文件或写入数据失败'})
-      return new Promise((reject)=>{
-        reject(JSON.stringify(err))
-      })
-    }
+    })
   }
 
   stat(path:string,callback: (err:any,stat:any) => void) {
@@ -95,7 +83,6 @@ export default class ReactNativeBlobUtilFS {
         callback("failed to stat path `" + path + "` because it does not exist or it is not a folder",null)
       } else {
         let filename = path.split('/').pop();
-        console.log("--------------------")
         let statObj = {
           'filename':filename,
           'path':path,
@@ -103,39 +90,46 @@ export default class ReactNativeBlobUtilFS {
           'size':stat.size,
           'lastModified':stat.mtime
         }
-        console.log("+++++++++++++++++++++++++++")
         callback(null,statObj)
-        promptAction.showToast({message:'获取信息成功'})
       }
     });
   }
 
-  unlink(path:string){
+  unlink(path:string, callback: (err: any) => void){
     fs.unlink(path, (err) => {
       if (err) {
         console.error("remove file failed with error message: " + err.message );
-        promptAction.showToast({message:'删除失败'})
+        callback(err)
       } else {
         console.info("remove file succeed");
-        promptAction.showToast({message:'删除成功'})
+        callback(null)
       }
     });
   }
 
-  cp(path: string,dest: string,callback: (value: Array<any>) => void) {
+  removeSession(paths: Array<any>,callback: (err: any) => void) {
+    let removeAsyncArr = [];
+    for (let i = 0; i < paths.length; i++) {
+      removeAsyncArr.push(fs.unlink(paths[i]))
+    }
+    
+    Promise.all([removeAsyncArr]).then(() => {
+      callback('')
+    }).catch((err) => {
+      callback(err)
+    })
+  }
+
+  cp(path: string,dest: string,callback: (err: any, res: any) => void) {
     try {
       if(fs.accessSync(path)){
-        if(!fs.accessSync(dest)){
-          let destFile = fs.openSync(dest, fs.OpenMode.CREATE);
-          fs.closeSync(destFile);
-        }
         fs.copyFileSync(path, dest);
-        promptAction.showToast({message:'复制成功'})
+        callback(null, '')
       }else {
-        promptAction.showToast({message:'原文件不存在'})
+        callback('file is not exist', null)
       }
     } catch (err) {
-      promptAction.showToast({message:'复制失败'})
+      callback('ap err', null)
     }
   }
 
@@ -143,38 +137,38 @@ export default class ReactNativeBlobUtilFS {
 
   writeFile(path: string,encoding: string,data: string ,transformFile: boolean, append: boolean):Promise<number> {
     return new Promise((resolve,reject) => {
-      let file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
-      let encod =buffer.transcode(buffer.from(data), 'utf-8', 'ascii')
-      let writeLen = fs.writeSync(file.fd,encod.buffer);
-      if(writeLen==-1){
-        console.log("write data to file succeed and size is:" + writeLen)
-      }else{
-        console.log('success')
-      }
+      try {
+        let file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
+        let encod =buffer.transcode(buffer.from(data), 'utf-8', 'ascii')
+        let writeLen = fs.writeSync(file.fd,encod.buffer);
+        if(writeLen==-1){
+          console.log("write data to file succeed and size is:" + writeLen)
+        }else{
+          console.log('success')
+        }
         fs.closeSync(file);
-        promptAction.showToast({message:'写入成功'})
+        resolve(writeLen)
+      } catch (err) {
+        console.error("writeFile failed with error message: " + err.message + ", error code: " + err.code);
+        reject(err)
+      }
     })
   }
 
   writeFileArray(path:string,data:Array<any>,append:boolean):Promise<number> {
     return new Promise((resolve,reject) => {
-      let blob = new buffer.Blob(data);
-      let pro = blob.arrayBuffer();
+      let buf = buffer.from(data);
       let file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
-      pro.then(array => {
-        fs.write(file.fd,array,{encoding:'ascii'},(err, writeLen) => {
-          if (err) {
-            reject(-1);
-            console.error("write failed with error message: " + err.message + ", error code: " + err.code);
-          } else {
-            console.info("write data to file succeed and size is:" + writeLen);
-            resolve(writeLen);
-            fs.closeSync(file);
-          }
-        });
+      fs.write(file.fd,buf.toString('utf-8'),{encoding:'utf-8'},(err, writeLen) => {
+        if (err) {
+          reject(-1);
+          console.error("write failed with error message: " + err.message + ", error code: " + err.code);
+        } else {
+          console.info("write data to file succeed and size is:" + writeLen);
+          resolve(writeLen);
+        }
+        fs.closeSync(file);
       });
-      fs.closeSync(file);
-      promptAction.showToast({message:'编码为ascii的格式写入成功'})
     })
   }
 
@@ -185,8 +179,7 @@ export default class ReactNativeBlobUtilFS {
         if (err) {
           if (err.code == 13900015) {
             // 文件夹存在
-            resolve();
-            promptAction.showToast({message:"目录创建成功"})
+            reject('floder exists');
           } else {
             reject(`Directory could not be created ${err.message} ${err.code}`);
           }
@@ -206,20 +199,16 @@ export default class ReactNativeBlobUtilFS {
         reject("File at path `" + path + "` already exists")
       }else{
         let file = fs.openSync(path, fs.OpenMode.READ_WRITE);
-        let blob = new buffer.Blob(data);
-        let pro = blob.arrayBuffer();
-        pro.then(array => {
-          fs.write(file.fd,array,{encoding:'ascii'},(err, writeLen) => {
-            if (err) {
-              reject(-1);
-              console.error("write failed with error message: " + err.message + ", error code: " + err.code);
-            } else {
-              console.info("write data to file succeed and size is:" + writeLen);
-              resolve();
-              fs.closeSync(file);
-              promptAction.showToast({message:'编码为ascii的格式创建成功'})
-            }
-          });
+        let buf = buffer.from(data);
+        fs.write(file.fd,buf.toString('utf-8'),{encoding:'utf-8'},(err, writeLen) => {
+          if (err) {
+            reject(err);
+            console.error("write failed with error message: " + err.message + ", error code: " + err.code);
+          } else {
+            console.info("write data to file succeed and size is:" + writeLen);
+            resolve();
+          }
+          fs.closeSync(file);
         });
       }
     })
@@ -230,99 +219,100 @@ export default class ReactNativeBlobUtilFS {
     return new Promise((resolve,reject)=>{
       let create = fs.accessSync(path)
       if(!create){
-        promptAction.showToast({message:'目录不存在'})
         reject("文件不存在")
       }
       let isDirectory = fs.statSync(path).isDirectory();
       if(!isDirectory){
-        promptAction.showToast({message:'不是一个目录'})
         reject("目录不存在")
       }
       let filenames = fs.listFileSync(path);
       resolve(filenames)
-      promptAction.showToast({message:'listFile succeed'})
       for (let i = 0; i < filenames.length; i++) {
         console.info("filename: %s", filenames[i]);
       }
     })
   }
 
-  //袁老师
-  exists(path: string, callback: (value: Array<boolean>) => void) {
+  exists(path: string, callback: (value: boolean) => void) {
     return new Promise((resolve, reject) => {
       fs.access(path, (err: BusinessError, result: boolean) => {
         if (err) {
           reject('File does not exist');
         } else {
-          callback([result]);
-          promptAction.showToast({message:'文件已经存在'})
+          callback(result);
         }
       });
     })
   };
 
-  readFile(path: string, encoding: string, transformFile: boolean): Promise<Array<any>> {
+  readFile(path: string, encoding: string, transformFile: boolean): Promise<any> {
     return new Promise((resolve, reject) => {
+      let fileInfo = fs.statSync(path)
       let file = fs.openSync(path, fs.OpenMode.READ_WRITE);
-      let buf = new ArrayBuffer(4096);
+      let buf = new ArrayBuffer(fileInfo.size);
       fs.read(file.fd, buf, (err, readLen) => {
         if (err) {
           reject('Failed to read the file');
         } else {
-          let bytes = buf.slice(0, readLen);
+          let bytes = buffer.from(buf, 0, readLen);
           switch (encoding.toLowerCase()) {
             case "base64":
-              resolve([buffer.transcode(buffer.from(bytes), 'utf-8', 'base64')]);
+              resolve(buffer.transcode(bytes, 'utf-8', 'base64'));
               break;
             case "ascii":
-              resolve([buffer.transcode(buffer.from(bytes), 'utf-8', 'ascii')]);
+              resolve(buffer.transcode(bytes, 'utf-8', 'ascii'));
               break;
             case "utf8":
-              resolve([bytes.toString()]);
+              resolve(bytes.toString('utf-8'));
               break;
             default:
-              resolve([bytes.toString()]);
+              resolve(bytes.toString('utf-8'));
               break;
           }
-          promptAction.showToast({message:'成功读取文件'})
           fs.closeSync(file);
         }
       });
     })
   };
 
-  lstat(path: string, callback: (value: Array<any>) => void): Promise<void> {
+  lstat(path: string, callback: (err: any, stat: any) => void): Promise<void> {
     return new Promise((resolve, reject) => {
       fs.lstat(path, (err, stat) => {
         if (err) {
+          callback(err, null)
           reject("lstat failed with error message: " + err.message + ", error code: " + err.code);
         } else {
           console.info("get link status succeed, the size of file is" + stat.size);
-          callback([stat]);
+          let infoStat = {
+            mode: stat.mode,
+            size: stat.size,
+            ctime: stat.ctime,
+            atime: stat.atime,
+            gid: stat.gid,
+            uid: stat.uid
+          }
+          callback(null, infoStat)
           resolve();
-          promptAction.showToast({message:'lstat is success'})
         }
       });
     })
   };
 
-  mv(path: string, dest: string, callback: (value: Array<any>) => void): Promise<void> {
+  mv(path: string, dest: string, callback: (err: any, res: any) => void): Promise<void> {
     return new Promise((resolve, reject) => {
       fs.moveFile(path, dest, 0, (err) => {
         if (err) {
+          callback(err, null)
           reject("move file failed with error message: " + err.message + ", error code: " + err.code);
         } else {
-          console.info("move file succeed");
-          callback([true]);
+          callback(null, '');
           resolve();
-          promptAction.showToast({message:'文件移动成功'})
         }
       });
     })
   };
 
   hash(path: string, algorithm: string): Promise<string> {
-    console.log('hash')
     return new Promise((resolve, reject) => {
       let algorithms: HashMap<string, string> = new HashMap();
       algorithms.set('md5', 'md5');
@@ -351,7 +341,6 @@ export default class ReactNativeBlobUtilFS {
         } else {
           console.info("calculate file hash succeed:" + str);
           resolve(str)
-          promptAction.showToast({message:'成功获取hash'})
         }
       });
     })
@@ -360,16 +349,17 @@ export default class ReactNativeBlobUtilFS {
 
   slice(path: string, dest: string, start: number, end: number): Promise<string> {
     return new Promise((resolve, reject) => {
+      let fileInfo = fs.statSync(path);
       let readFile = fs.openSync(path, fs.OpenMode.READ_ONLY);
       let writeFile = fs.openSync(dest, fs.OpenMode.WRITE_ONLY | fs.OpenMode.CREATE);
-      let buf = new ArrayBuffer(4096);
+      let buf = new ArrayBuffer(fileInfo.size);
       fs.read(readFile.fd, buf, (err: BusinessError, readLen: number) => {
         if (err) {
           reject('Failed to read the file');
+          fs.closeSync(writeFile);
         } else {
-
           let max = end < readLen ? end : readLen;
-          let bytes = buf.slice(start, readLen);
+          let bytes = buf.slice(start, max);
           fs.write(writeFile.fd, bytes, (err, writeLen) => {
             if (err) {
               reject("write failed with error message: " + err.message + ", error code: " + err.code);
@@ -379,24 +369,15 @@ export default class ReactNativeBlobUtilFS {
             }
           });
           fs.closeSync(readFile);
-          promptAction.showToast({message:'slice is success'})
         }
       });
     })
   };
 
-  df(callback: (value: Array<any>) => void) {
+  df(callback: (err: any, stat: Object) => void) {
     let totalSize = statvfs.getTotalSizeSync(this.context.filesDir);
     let freeSize = statvfs.getFreeSizeSync(this.context.filesDir);
-    let array =[
-      {
-        "totalSize":totalSize
-      },
-      {
-        "freeSize":freeSize
-      }]
-    callback(array)
-    promptAction.showToast({message:JSON.stringify(array)})
+    callback(null, { "free": freeSize, "total": totalSize})
   };
 }
 

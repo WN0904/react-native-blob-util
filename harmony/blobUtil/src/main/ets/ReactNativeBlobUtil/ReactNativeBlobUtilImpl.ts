@@ -1,8 +1,11 @@
 import common from '@ohos.app.ability.common';
 import { TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
 import ReactNativeBlobUtilFS from './ReactNativeBlobUtilFS';
-import ReactNativeBlobUtilStream, { ReactNativeBlobUtilReadStream } from './ReactNativeBlobUtilStream';
-import { AsyncCallback } from '@ohos.base';
+import ReactNativeBlobUtilReq from './ReactNativeBlobUtilReq';
+import ConfigType from './ReactNativeBlobUtilConfig';
+
+import ReactNativeBlobUtilStream from './ReactNativeBlobUtilStream';
+import { HashMap } from '@kit.ArkTS';
 
 export default class ReactNativeBlobUtilImpl {
   private context: common.UIAbilityContext | undefined = undefined;
@@ -12,6 +15,7 @@ export default class ReactNativeBlobUtilImpl {
   private reactNativeBlobUtilStream: ReactNativeBlobUtilStream | undefined = undefined
 
   private ctx: TurboModuleContext | undefined = undefined
+  taskMap: HashMap<string, ReactNativeBlobUtilReq> = new HashMap()
 
   constructor(context: common.UIAbilityContext, ctx: TurboModuleContext) {
     this.context = context
@@ -24,6 +28,35 @@ export default class ReactNativeBlobUtilImpl {
     return this.reactNativeBlobUtilFS.getSystemFolders()
   }
 
+  fetchBlob(options: ConfigType, taskId: string, method: string, url: string, headers: Object, form: Array<any> | string, callback: (err: any, rawType: string, data: string, responseInfo: any) => void) {
+    let httpReq = new ReactNativeBlobUtilReq(this.ctx, this.context);
+    this.taskMap.set(taskId, httpReq);
+    httpReq.startHttp(options, taskId, method, url, headers, form, callback);
+  }
+
+  fetchBlobForm(options: ConfigType, taskId: string, method: string, url: string, headers: Object, form: Array<any> | string, callback: (err: any, rawType: string, data: string, responseInfo: any) => void) {
+    let httpReq = new ReactNativeBlobUtilReq(this.ctx, this.context);
+    this.taskMap.set(taskId, httpReq);
+    httpReq.startHttp(options, taskId, method, url, headers, form, callback);
+  }
+
+  cancelRequest(taskId: string, callback: (value: Array<any>) => void) {
+    this.taskMap.get(taskId)?.cancelRequest();
+    callback([]);
+  }
+
+  enableProgressReport(taskId: string, interval: number, count: number) {
+    this.taskMap.get(taskId)?.onProgressReport(interval, count);
+  }
+
+  enableUploadProgressReport(taskId: string, interval: number, count: number) {
+    this.taskMap.get(taskId)?.onUploadProgressReport(interval, count);
+  }
+
+  removeSession(paths: Array<string>, callback: (err: any) => void) {
+    this.reactNativeBlobUtilFS?.removeSession(paths, callback)
+  }
+
   createFile(path: string, data: string, encoding: string): Promise<string> {
     return this.reactNativeBlobUtilFS.createFile(path, data, encoding)
   }
@@ -32,7 +65,7 @@ export default class ReactNativeBlobUtilImpl {
     this.reactNativeBlobUtilStream.writeStream(path, encoding, appendData, callback);
   }
 
-  readStream(filePath: string, encoding: string, bufferSize: number, tick: number, streamId: string): Promise<ReactNativeBlobUtilReadStream> {
+  readStream(filePath: string, encoding: string, bufferSize: number, tick: number, streamId: string): void {
     return this.reactNativeBlobUtilStream.readStream(filePath, encoding, bufferSize, tick, streamId);
   }
 
@@ -40,7 +73,7 @@ export default class ReactNativeBlobUtilImpl {
     this.reactNativeBlobUtilFS.stat(path, callback)
   }
 
-  cp(path: string, dest: string, callback: (value: Array<any>) => void) {
+  cp(path: string, dest: string, callback: (err: any, stat: any) => void) {
     this.reactNativeBlobUtilFS.cp(path, dest, callback)
   }
 
@@ -52,8 +85,8 @@ export default class ReactNativeBlobUtilImpl {
     return this.reactNativeBlobUtilFS.writeFileArray(path, data, append)
   }
 
-  unlink(path: string) {
-    this.reactNativeBlobUtilFS.unlink(path)
+  unlink(path: string, callback: (err: any) => void) {
+    this.reactNativeBlobUtilFS.unlink(path, callback)
   }
 
   mkdir(path: string): Promise<void> {
@@ -76,19 +109,19 @@ export default class ReactNativeBlobUtilImpl {
     this.reactNativeBlobUtilStream.writeArrayChunk(streamId, withArray, callback)
   }
 
-  exists(path: string, callback: (value: Array<boolean>) => void) {
+  exists(path: string, callback: (value: boolean) => void) {
     this.reactNativeBlobUtilFS.exists(path, callback)
   }
 
-  readFile(path: string, encoding: string, transformFile: boolean): Promise<Array<any>> {
+  readFile(path: string, encoding: string, transformFile: boolean): Promise<any> {
     return this.reactNativeBlobUtilFS.readFile(path, encoding, transformFile)
   }
 
-  lstat(path: string, callback: (value: Array<any>) => void) {
+  lstat(path: string, callback: (err: any, stat: any) => void) {
     this.reactNativeBlobUtilFS.lstat(path, callback)
   }
 
-  mv(path: string, dest: string, callback: (value: Array<any>) => void) {
+  mv(path: string, dest: string, callback: (err: any, stat: any) => void) {
     this.reactNativeBlobUtilFS.mv(path, dest, callback)
   }
 
@@ -96,7 +129,7 @@ export default class ReactNativeBlobUtilImpl {
     return this.reactNativeBlobUtilFS.hash(path, algorithm)
   }
 
-  df(callback: (value: Array<any>) => void) {
+  df(callback: (err: any, stat: Object) => void) {
     this.reactNativeBlobUtilFS.df(callback)
   }
 
