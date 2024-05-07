@@ -33,7 +33,7 @@
         "alias":"react-native-blob-util",
         "codegenConfig": {
             "specPaths": [
-              "./codegenSpecs/NativeBlobUtils"
+              "./codegenSpecs/NativeBlobUtils.js"
             ]
           }
     },

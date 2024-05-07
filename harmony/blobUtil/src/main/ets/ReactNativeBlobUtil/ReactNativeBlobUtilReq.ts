@@ -79,7 +79,7 @@ export default class ReactNativeBlobUtilReq {
     method = method.toLowerCase();
     this.taskId = taskId;
 
-    if ((options.fileCache || options.path) && !this.shouldTransformFile(options)) {
+    if ((options.fileCache || options.path) && !this.shouldTransFormFile(options)) {
       this.responseType = ResponseType.FileStorage;
     } else {
       this.responseType = ResponseType.KeepInMemory;
@@ -194,7 +194,7 @@ export default class ReactNativeBlobUtilReq {
                       fs.closeSync(file);
                     })
                   } else {
-                    if (this.shouldTransformFile(options)) {
+                    if (this.shouldTransFormFile(options)) {
                       callback(null, RNFB_RESPONSE.PATH, this.destPath, resInfo);
                       return;
                     }
@@ -246,7 +246,7 @@ export default class ReactNativeBlobUtilReq {
     return !!(str.indexOf(FILE_PREFIX) || str.indexOf(CONTENT_PREFIX) || str.indexOf('/') === 0);
   }
 
-  getABdata(isPath: boolean, data: string): ArrayBuffer {
+  getABData(isPath: boolean, data: string): ArrayBuffer {
     let buf: ArrayBuffer;
     if (isPath) {
       if (data.indexOf('/') !== 0) {
