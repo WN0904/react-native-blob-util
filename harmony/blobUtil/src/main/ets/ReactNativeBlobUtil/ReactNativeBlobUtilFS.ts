@@ -277,7 +277,7 @@ export default class ReactNativeBlobUtilFS {
 
   lstat(path: string, callback: (err: any, stat: any) => void): Promise<void> {
     return new Promise((resolve, reject) => {
-      fs.lstat(path, (err, stat) => {
+      fs.lstat(path, (err, stat: fs.Stat) => {
         if (err) {
           callback(err, null)
           reject("lstat failed with error message: " + err.message + ", error code: " + err.code);
@@ -287,6 +287,7 @@ export default class ReactNativeBlobUtilFS {
             mode: stat.mode,
             size: stat.size,
             ctime: stat.ctime,
+            mtime: stat.mtime,
             atime: stat.atime,
             gid: stat.gid,
             uid: stat.uid
@@ -356,7 +357,7 @@ export default class ReactNativeBlobUtilFS {
       fs.read(readFile.fd, buf, (err: BusinessError, readLen: number) => {
         if (err) {
           reject('Failed to read the file');
-          fs.closeSync(writeFile);
+          fs.closeSync(readFile);
         } else {
           let max = end < readLen ? end : readLen;
           let bytes = buf.slice(start, max);

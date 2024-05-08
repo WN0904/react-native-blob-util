@@ -53,7 +53,7 @@ export default class ReactNativeBlobUtilImpl {
     this.taskMap.get(taskId)?.onUploadProgressReport(interval, count);
   }
 
-  removeSession(paths: Array<string>, callback: (err: any) => void) {
+  removeSession(paths: Array<any>, callback: (err: any) => void) {
     this.reactNativeBlobUtilFS?.removeSession(paths, callback)
   }
 
@@ -73,7 +73,7 @@ export default class ReactNativeBlobUtilImpl {
     this.reactNativeBlobUtilFS.stat(path, callback)
   }
 
-  cp(path: string, dest: string, callback: (err: any, stat: any) => void) {
+  cp(path: string, dest: string, callback: (err: any, res: any) => void) {
     this.reactNativeBlobUtilFS.cp(path, dest, callback)
   }
 
@@ -121,7 +121,7 @@ export default class ReactNativeBlobUtilImpl {
     this.reactNativeBlobUtilFS.lstat(path, callback)
   }
 
-  mv(path: string, dest: string, callback: (err: any, stat: any) => void) {
+  mv(path: string, dest: string, callback: (err: any, res: any) => void) {
     this.reactNativeBlobUtilFS.mv(path, dest, callback)
   }
 

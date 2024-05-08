@@ -283,7 +283,7 @@ export default class ReactNativeBlobUtilReq {
     this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilProgress', {
       taskId: this.taskId,
       written: this.downloadInfo?.receiveSize,
-      total: this.downloadInfo.totalSize,
+      total: this.downloadInfo?.totalSize,
       chunk: ''
     })
   }
@@ -308,7 +308,7 @@ export default class ReactNativeBlobUtilReq {
     this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilProgress', {
       taskId: this.taskId,
       written: this.uploadInfo?.sendSize,
-      total: this.uploadInfo.totalSize,
+      total: this.uploadInfo?.totalSize,
     })
   }
 

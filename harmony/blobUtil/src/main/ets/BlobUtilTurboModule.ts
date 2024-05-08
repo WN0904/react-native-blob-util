@@ -39,7 +39,7 @@ export class BlobUtilTurboModule extends TurboModule {
     this.reactNativeBlobUtilImpl.enableUploadProgressReport(taskId, interval, count);
   }
 
-  removeSession(paths: Array<string>, callback: (err: any) => void) {
+  removeSession(paths: Array<any>, callback: (err: any) => void) {
     this.reactNativeBlobUtilImpl.removeSession(paths, callback);
   }
 
@@ -51,7 +51,7 @@ export class BlobUtilTurboModule extends TurboModule {
     this.reactNativeBlobUtilImpl.stat(path, callback)
   }
 
-  cp(path: string, dest: string, callback: (err: any, stat: any) => void) {
+  cp(path: string, dest: string, callback: (err: any, res: any) => void) {
     this.reactNativeBlobUtilImpl.cp(path, dest, callback)
   }
 
