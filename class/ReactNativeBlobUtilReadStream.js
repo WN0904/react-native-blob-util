@@ -2,12 +2,10 @@
 // Use of this source code is governed by a MIT-style license that can be
 // found in the LICENSE file.
 
-import {NativeEventEmitter, DeviceEventEmitter} from 'react-native';
+import {DeviceEventEmitter} from 'react-native';
 import UUID from '../utils/uuid';
 
 import ReactNativeBlobUtil from '../codegenSpecs/NativeBlobUtils';
-
-const emitter = new NativeEventEmitter(ReactNativeBlobUtil);
 
 export default class ReactNativeBlobUtilReadStream {
 

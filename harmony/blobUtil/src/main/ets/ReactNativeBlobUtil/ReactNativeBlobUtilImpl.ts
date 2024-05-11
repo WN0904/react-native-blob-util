@@ -101,11 +101,11 @@ export default class ReactNativeBlobUtilImpl {
     return this.reactNativeBlobUtilFS.ls(path)
   }
 
-  writeChunk(streamId: string, withData: string, callback: (value: Array<any>) => void) {
+  writeChunk(streamId: string, withData: string, callback: (err: any) => void) {
     this.reactNativeBlobUtilStream.writeChunk(streamId, withData, callback)
   }
 
-  writeArrayChunk(streamId: string, withArray: Array<any>, callback: (value: Array<any>) => void) {
+  writeArrayChunk(streamId: string, withArray: Array<any>, callback: (err: any) => void) {
     this.reactNativeBlobUtilStream.writeArrayChunk(streamId, withArray, callback)
   }
 
@@ -137,7 +137,7 @@ export default class ReactNativeBlobUtilImpl {
     return this.reactNativeBlobUtilFS.slice(src, dest, start, end)
   }
 
-  closeStream(streamId: string, callback: (value: Array<any>) => void) {
+  closeStream(streamId: string, callback: (err: any) => void) {
     this.reactNativeBlobUtilStream.close(streamId, callback)
   }
 }

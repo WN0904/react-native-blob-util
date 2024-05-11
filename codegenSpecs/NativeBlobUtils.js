@@ -56,25 +56,25 @@ export interface Spec extends TurboModule {
     +enableProgressReport: (taskId: string, interval: number, count: number) => void;
     +enableUploadProgressReport: (taskId: string, interval: number, count: number) => void;
     +slice: (src: string, dest: string, start: number, end: number) => Promise<string>;
-    +presentOptionsMenu: (uri: string, scheme: string) => Promise<Array<any>>;
-    +presentOpenInMenu: (uri: string, scheme: string) => Promise<Array<any>>;
-    +presentPreview: (uri: string, scheme: string) => Promise<Array<any>>;
-    +excludeFromBackupKey: (url: string) => Promise<Array<any>>;
+    // +presentOptionsMenu: (uri: string, scheme: string) => Promise<Array<any>>;
+    // +presentOpenInMenu: (uri: string, scheme: string) => Promise<Array<any>>;
+    // +presentPreview: (uri: string, scheme: string) => Promise<Array<any>>;
+    // +excludeFromBackupKey: (url: string) => Promise<Array<any>>;
     +df: (callback: (value: Array<any>) => void) => void;
     //+emitExpiredEvent: (callback: (value: string) => void) => void; // The callback is not really used here
-    +actionViewIntent: (path: string, mime: string, chooserTitle: string) => Promise<void>;
-    +addCompleteDownload: (config: Object) => Promise<void>;
-    +copyToInternal: (contentUri: string, destpath: string) => Promise<string>;
-    +copyToMediaStore: (filedata: Object, mt: string, path: string) => Promise<string>;
-    +createMediaFile: (filedata: Object, mt: string) => Promise<string>;
-    +getBlob: (contentUri: string, encoding: string) => Promise<Array<any>>;
-    +getContentIntent: (mime: string) => Promise<string>;
-    +getSDCardDir: () => Promise<string>;
-    +getSDCardApplicationDir: () => Promise<string>;
-    +scanFile: (pairs: Array<any>, callback: (value: Array<any>) => void) => void;
-    +writeToMediaFile: (fileUri: string, path: string, transformFile: boolean) => Promise<string>;
-    +addListener: (eventName: string) => void;
-    +removeListeners: (count: number) => void;
+    // +actionViewIntent: (path: string, mime: string, chooserTitle: string) => Promise<void>;
+    // +addCompleteDownload: (config: Object) => Promise<void>;
+    // +copyToInternal: (contentUri: string, destpath: string) => Promise<string>;
+    // +copyToMediaStore: (filedata: Object, mt: string, path: string) => Promise<string>;
+    // +createMediaFile: (filedata: Object, mt: string) => Promise<string>;
+    // +getBlob: (contentUri: string, encoding: string) => Promise<Array<any>>;
+    // +getContentIntent: (mime: string) => Promise<string>;
+    // +getSDCardDir: () => Promise<string>;
+    // +getSDCardApplicationDir: () => Promise<string>;
+    // +scanFile: (pairs: Array<any>, callback: (value: Array<any>) => void) => void;
+    // +writeToMediaFile: (fileUri: string, path: string, transformFile: boolean) => Promise<string>;
+    // +addListener: (eventName: string) => void;
+    // +removeListeners: (count: number) => void;
 
   }
 

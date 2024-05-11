@@ -70,7 +70,7 @@ export default class ReactNativeBlobUtilFS {
         fs.writeSync(file.fd, data,{encoding:encoding });
         fs.closeSync(file);
         res(path)
-      }catch(err) {
+      } catch(err) {
         console.error("createFile failed with error message: " + err.message + ", error code: " + err.code);
         rej(err)
       }
@@ -96,15 +96,21 @@ export default class ReactNativeBlobUtilFS {
   }
 
   unlink(path:string, callback: (err: any) => void){
-    fs.unlink(path, (err) => {
-      if (err) {
-        console.error("remove file failed with error message: " + err.message );
-        callback(err)
-      } else {
-        console.info("remove file succeed");
-        callback(null)
-      }
-    });
+    try {
+      fs.unlink(path, (err) => {
+        if (err) {
+          console.error("remove file failed with error message: " + err.message);
+          callback("remove file failed with error message: " + err.message)
+        } else {
+          console.info("remove file succeed");
+          callback(null)
+        }
+      });
+    } catch(err) {
+      let errMsg = "unlink failed with error message: " + err.message + ", error code: " + err.code;
+      console.error(errMsg);
+      callback(errMsg);
+    }
   }
 
   removeSession(paths: Array<any>,callback: (err: any) => void) {
@@ -149,26 +155,33 @@ export default class ReactNativeBlobUtilFS {
         fs.closeSync(file);
         resolve(writeLen)
       } catch (err) {
-        console.error("writeFile failed with error message: " + err.message + ", error code: " + err.code);
-        reject(err)
+        let errMsg = "writeFile failed with error message: " + err.message + ", error code: " + err.code;
+        console.error(errMsg);
+        reject(errMsg);
       }
     })
   }
 
   writeFileArray(path:string,data:Array<any>,append:boolean):Promise<number> {
     return new Promise((resolve,reject) => {
-      let buf = buffer.from(data);
-      let file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
-      fs.write(file.fd,buf.toString('utf-8'),{encoding:'utf-8'},(err, writeLen) => {
-        if (err) {
-          reject(-1);
-          console.error("write failed with error message: " + err.message + ", error code: " + err.code);
-        } else {
-          console.info("write data to file succeed and size is:" + writeLen);
-          resolve(writeLen);
-        }
-        fs.closeSync(file);
-      });
+      try {
+        let buf = buffer.from(data);
+        let file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
+        fs.write(file.fd,buf.toString('utf-8'),{encoding:'utf-8'},(err, writeLen) => {
+          if (err) {
+            reject(-1);
+            console.error("write failed with error message: " + err.message + ", error code: " + err.code);
+          } else {
+            console.info("write data to file succeed and size is:" + writeLen);
+            resolve(writeLen);
+          }
+          fs.closeSync(file);
+        });
+      } catch (err) {
+        let errMsg = "writeFileArray failed with error message: " + err.message + ", error code: " + err.code;
+        console.error(errMsg);
+        reject(errMsg);
+      }
     })
   }
 
@@ -247,31 +260,37 @@ export default class ReactNativeBlobUtilFS {
 
   readFile(path: string, encoding: string, transformFile: boolean): Promise<any> {
     return new Promise((resolve, reject) => {
-      let fileInfo = fs.statSync(path)
-      let file = fs.openSync(path, fs.OpenMode.READ_WRITE);
-      let buf = new ArrayBuffer(fileInfo.size);
-      fs.read(file.fd, buf, (err, readLen) => {
-        if (err) {
-          reject('Failed to read the file');
-        } else {
-          let bytes = buffer.from(buf, 0, readLen);
-          switch (encoding.toLowerCase()) {
-            case "base64":
-              resolve(buffer.transcode(bytes, 'utf-8', 'base64'));
-              break;
-            case "ascii":
-              resolve(buffer.transcode(bytes, 'utf-8', 'ascii'));
-              break;
-            case "utf8":
-              resolve(bytes.toString('utf-8'));
-              break;
-            default:
-              resolve(bytes.toString('utf-8'));
-              break;
+      try {
+        let fileInfo = fs.statSync(path)
+        let file = fs.openSync(path, fs.OpenMode.READ_WRITE);
+        let buf = new ArrayBuffer(fileInfo.size);
+        fs.read(file.fd, buf, (err, readLen) => {
+          if (err) {
+            reject('Failed to read the file');
+          } else {
+            let bytes = buffer.from(buf, 0, readLen);
+            switch (encoding.toLowerCase()) {
+              case "base64":
+                resolve(buffer.transcode(bytes, 'utf-8', 'base64'));
+                break;
+              case "ascii":
+                resolve(buffer.transcode(bytes, 'utf-8', 'ascii'));
+                break;
+              case "utf8":
+                resolve(bytes.toString('utf-8'));
+                break;
+              default:
+                resolve(bytes.toString('utf-8'));
+                break;
+            }
+            fs.closeSync(file);
           }
-          fs.closeSync(file);
-        }
-      });
+        });
+      } catch (err) {
+        let errMsg = "readFile failed with error message: " + err.message + ", error code: " + err.code;
+        console.error(errMsg);
+        reject(errMsg);
+      }
     })
   };
 
@@ -279,7 +298,7 @@ export default class ReactNativeBlobUtilFS {
     return new Promise((resolve, reject) => {
       fs.lstat(path, (err, stat: fs.Stat) => {
         if (err) {
-          callback(err, null)
+          callback("lstat failed with error message: " + err.message + ", error code: " + err.code, null)
           reject("lstat failed with error message: " + err.message + ", error code: " + err.code);
         } else {
           console.info("get link status succeed, the size of file is" + stat.size);
@@ -303,7 +322,7 @@ export default class ReactNativeBlobUtilFS {
     return new Promise((resolve, reject) => {
       fs.moveFile(path, dest, 0, (err) => {
         if (err) {
-          callback(err, null)
+          callback("move file failed with error message: " + err.message + ", error code: " + err.code, null)
           reject("move file failed with error message: " + err.message + ", error code: " + err.code);
         } else {
           callback(null, '');
@@ -315,63 +334,75 @@ export default class ReactNativeBlobUtilFS {
 
   hash(path: string, algorithm: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      let algorithms: HashMap<string, string> = new HashMap();
-      algorithms.set('md5', 'md5');
-      algorithms.set('sha1', 'sha1');
-      algorithms.set('sha256', 'sha256');
-      // algorithm不存在
-      if (!algorithms.hasKey(algorithm)) {
-        reject('Invalid hash algorithm');
-        return;
-      }
-      // 判断是否是文件夹
-      let isDirectory = fs.statSync(path).isDirectory();
-      if (isDirectory) {
-        reject('file  IsDirectory');
-        return;
-      }
-      // 判断文件是否在
-      let res = fs.accessSync(path);
-      if (!res) {
-        reject('file not exists');
-        return;
-      }
-      hash.hash(path, algorithm, (err, str) => {
-        if (err) {
-          reject("calculate file hash failed with error message: " + err.message + ", error code: " + err.code);
-        } else {
-          console.info("calculate file hash succeed:" + str);
-          resolve(str)
+      try {
+        let algorithms: HashMap<string, string> = new HashMap();
+        algorithms.set('md5', 'md5');
+        algorithms.set('sha1', 'sha1');
+        algorithms.set('sha256', 'sha256');
+        // algorithm不存在
+        if (!algorithms.hasKey(algorithm)) {
+          reject('Invalid hash algorithm');
+          return;
         }
-      });
+        // 判断是否是文件夹
+        let isDirectory = fs.statSync(path).isDirectory();
+        if (isDirectory) {
+          reject('file  IsDirectory');
+          return;
+        }
+        // 判断文件是否在
+        let res = fs.accessSync(path);
+        if (!res) {
+          reject('file not exists');
+          return;
+        }
+        hash.hash(path, algorithm, (err, str) => {
+          if (err) {
+            reject("calculate file hash failed with error message: " + err.message + ", error code: " + err.code);
+          } else {
+            console.info("calculate file hash succeed:" + str);
+            resolve(str)
+          }
+        });
+      } catch (err) {
+        let errMsg = "hash failed with error message: " + err.message + ", error code: " + err.code;
+        console.error(errMsg);
+        reject(errMsg);
+      }
     })
   };
 
 
   slice(path: string, dest: string, start: number, end: number): Promise<string> {
     return new Promise((resolve, reject) => {
-      let fileInfo = fs.statSync(path);
-      let readFile = fs.openSync(path, fs.OpenMode.READ_ONLY);
-      let writeFile = fs.openSync(dest, fs.OpenMode.WRITE_ONLY | fs.OpenMode.CREATE);
-      let buf = new ArrayBuffer(fileInfo.size);
-      fs.read(readFile.fd, buf, (err: BusinessError, readLen: number) => {
-        if (err) {
-          reject('Failed to read the file');
-          fs.closeSync(readFile);
-        } else {
-          let max = end < readLen ? end : readLen;
-          let bytes = buf.slice(start, max);
-          fs.write(writeFile.fd, bytes, (err, writeLen) => {
-            if (err) {
-              reject("write failed with error message: " + err.message + ", error code: " + err.code);
-            } else {
-              resolve(bytes.toString());
-              fs.closeSync(writeFile);
-            }
-          });
-          fs.closeSync(readFile);
-        }
-      });
+      try {
+        let fileInfo = fs.statSync(path);
+        let readFile = fs.openSync(path, fs.OpenMode.READ_ONLY);
+        let writeFile = fs.openSync(dest, fs.OpenMode.WRITE_ONLY | fs.OpenMode.CREATE);
+        let buf = new ArrayBuffer(fileInfo.size);
+        fs.read(readFile.fd, buf, (err: BusinessError, readLen: number) => {
+          if (err) {
+            reject('Failed to read the file');
+            fs.closeSync(readFile);
+          } else {
+            let max = end < readLen ? end : readLen;
+            let bytes = buf.slice(start, max);
+            fs.write(writeFile.fd, bytes, (err, writeLen) => {
+              if (err) {
+                reject("write failed with error message: " + err.message + ", error code: " + err.code);
+              } else {
+                resolve(bytes.toString());
+                fs.closeSync(writeFile);
+              }
+            });
+            fs.closeSync(readFile);
+          }
+        });
+      } catch (err) {
+        let errMsg = "slice failed with error message: " + err.message + ", error code: " + err.code;
+        console.error(errMsg);
+        reject(errMsg);
+      }
     })
   };
 

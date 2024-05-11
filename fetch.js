@@ -2,16 +2,13 @@ import {ReactNativeBlobUtilConfig} from './types';
 import URIUtil from './utils/uri';
 import fs from './fs';
 import getUUID from './utils/uuid';
-import {NativeEventEmitter,DeviceEventEmitter} from 'react-native';
+import {DeviceEventEmitter} from 'react-native';
 import {FetchBlobResponse} from './class/ReactNativeBlobUtilBlobResponse';
 import CanceledFetchError from './class/ReactNativeBlobUtilCanceledFetchError';
 import ReactNativeBlobUtil from './codegenSpecs/NativeBlobUtils';
 
-const eventEmitter = new NativeEventEmitter(ReactNativeBlobUtil);
-
-
 // register message channel event handler.
-eventEmitter.addListener('ReactNativeBlobUtilMessage', (e) => {
+DeviceEventEmitter.addListener('ReactNativeBlobUtilMessage', (e) => {
     if (typeof e === 'string') e = JSON.parse(e);
 
     if (e.event === 'warn') {

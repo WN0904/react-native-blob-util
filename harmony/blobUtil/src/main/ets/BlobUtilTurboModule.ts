@@ -86,11 +86,11 @@ export class BlobUtilTurboModule extends TurboModule {
     return this.reactNativeBlobUtilImpl.ls(path)
   }
 
-  writeChunk(streamId: string, withData: string, callback: (value: Array<any>) => void){
+  writeChunk(streamId: string, withData: string, callback: (err: any) => void){
     return this.reactNativeBlobUtilImpl.writeChunk(streamId,withData,callback)
   }
 
-  writeArrayChunk(streamId: string, withArray: Array<any>, callback: (value: Array<any>) => void){
+  writeArrayChunk(streamId: string, withArray: Array<any>, callback: (err: any) => void){
     this.reactNativeBlobUtilImpl.writeArrayChunk(streamId,withArray,callback)
   }
 
@@ -122,7 +122,7 @@ export class BlobUtilTurboModule extends TurboModule {
     return this.reactNativeBlobUtilImpl.slice(src,dest,start,end)
   }
 
-  closeStream(streamId: string, callback: (value: Array<any>) => void){
+  closeStream(streamId: string, callback: (err: any) => void){
     this.reactNativeBlobUtilImpl.closeStream(streamId,callback)
   }
 }

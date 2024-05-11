@@ -102,7 +102,7 @@ export default class ReactNativeBlobUtilStream {
   }
 
 
-  writeChunk(streamId: string, data: string, callback: (value: Array<any>) => void) {
+  writeChunk(streamId: string, data: string, callback: (err: any) => void) {
     let ss = ReactNativeBlobUtilStream.fileStreams.get(streamId)
     if (!ss) {
       return;
@@ -113,10 +113,10 @@ export default class ReactNativeBlobUtilStream {
       }, (err, bytesWritten) => {
         console.log(JSON.stringify(bytesWritten)+'bytesWritten')
         if (err) {
-          callback([]);
+          callback("writeChunk failed with error message: " + err.message + ", error code: " + err.code);
         } else {
           if (bytesWritten) {
-            callback([]);
+            callback('');
           }
         }
       });
@@ -125,29 +125,26 @@ export default class ReactNativeBlobUtilStream {
     }
   }
 
-  writeArrayChunk(streamId: string, data: Array<any>, callback: (value: Array<any>) => void) {
+  writeArrayChunk(streamId: string, data: Array<any>, callback: (err: any) => void) {
     let ss = ReactNativeBlobUtilStream.fileStreams.get(streamId)
     if (!ss) {
       return;
     }
-    let blob = new buffer.Blob(data);
-    let pro = blob.arrayBuffer();
-    pro.then((array:ArrayBuffer) => {
-      ss.stream.write(array,{
-        encoding: 'utf-8'
-      }, (err, bytesWritten) => {
-        if (err) {
-          callback([]);
-        } else {
-          if (bytesWritten) {
-            callback([]);
-          }
+    let buf = buffer.from(data)
+    ss.stream.write(buf.toString('utf-8'),{
+      encoding: 'utf-8'
+    }, (err, bytesWritten) => {
+      if (err) {
+        callback("writeArrayChunk failed with error message: " + err.message + ", error code: " + err.code);
+      } else {
+        if (bytesWritten) {
+          callback('');
         }
-      });
+      }
     });
   }
 
-  close(streamId: string, callback: (value: Array<any>) => void){
+  close(streamId: string, callback: (err: any) => void){
     let ss = ReactNativeBlobUtilStream.fileStreams.get(streamId)
     if(!ss){
       return;
@@ -155,6 +152,7 @@ export default class ReactNativeBlobUtilStream {
     ReactNativeBlobUtilStream.fileStreams.remove(streamId)
     ss.stream.close((err)=>{ if (err) {
       console.error("close stream failed with error message: " + err.message + ", error code: " + err.code);
+      callback("close failed with error message: " + err.message + ", error code: " + err.code);
     } else {
       console.info("close stream succeed");
     }
