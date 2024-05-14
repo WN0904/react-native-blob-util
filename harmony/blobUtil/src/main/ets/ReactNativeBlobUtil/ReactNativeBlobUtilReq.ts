@@ -147,76 +147,50 @@ export default class ReactNativeBlobUtilReq {
           let buf: ArrayBuffer = this.getABData(this.isPathStr(form), form);
           reqOptions.extraData = buf;
         }
+      }
 
-        this.httpRequest.on('dataReceive', (data: ArrayBuffer) => {
-          this.totalReceiveData.push(data);
-        })
+      this.httpRequest.on('dataReceive', (data: ArrayBuffer) => {
+        this.totalReceiveData.push(data);
+      })
 
-        // 数据请求结束后，发送最后一次上传/下载进度，并清除定时器
-        this.httpRequest.on('dataEnd', () => {
-          if (this.downloadTimer) {
-            this.sendDownloadProgress();
-            clearInterval(this.downloadTimer)
-          } else if (this.uploadTimer) {
-            this.sendUploadProgress();
-            clearInterval(this.uploadTimer);
-          }
-        })
+      // 数据请求结束后，发送最后一次上传/下载进度，并清除定时器
+      this.httpRequest.on('dataEnd', () => {
+        if (this.downloadTimer) {
+          this.sendDownloadProgress();
+          clearInterval(this.downloadTimer)
+        } else if (this.uploadTimer) {
+          this.sendUploadProgress();
+          clearInterval(this.uploadTimer);
+        }
+      })
 
-        this.httpRequest.on('headersReceive', (header: Object) => {
-          this.resHeaders = header;
-        })
+      this.httpRequest.on('headersReceive', (header: Object) => {
+        this.resHeaders = header;
+      })
 
-        this.httpRequest.requestInStream(url, reqOptions, (err: BusinessError, data: number) => {
-          if (!err) {
-            let isResBlob: boolean = this.isBlobResponse(this.resHeaders, options);
-            let resInfo: ResponseInfo = this.getRespInfo(taskId, this.resHeaders, data, isResBlob);
-            this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilState', resInfo);
+      this.httpRequest.requestInStream(url, reqOptions, (err: BusinessError, data: number) => {
+        if (!err) {
+          let isResBlob: boolean = this.isBlobResponse(this.resHeaders, options);
+          let resInfo: ResponseInfo = this.getRespInfo(taskId, this.resHeaders, data, isResBlob);
+          this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilState', resInfo);
 
-            // 合并多个arraybuffer数据为一个
-            if (this.totalReceiveData.length) {
-              let totalLength = 0;
-              for (let arr of this.totalReceiveData) {
-                totalLength += arr.byteLength;
-              }
-              let totalBuffer = new ArrayBuffer(totalLength);
-              let result = new Uint8Array(totalBuffer);
-              let offset = 0;
-              for (let arr of this.totalReceiveData) {
-                result.set(new Uint8Array(arr), offset);
-                offset += arr.byteLength;
-              }
+          // 合并多个arraybuffer数据为一个
+          if (this.totalReceiveData.length) {
+            let totalLength = 0;
+            for (let arr of this.totalReceiveData) {
+              totalLength += arr.byteLength;
+            }
+            let totalBuffer = new ArrayBuffer(totalLength);
+            let result = new Uint8Array(totalBuffer);
+            let offset = 0;
+            for (let arr of this.totalReceiveData) {
+              result.set(new Uint8Array(arr), offset);
+              offset += arr.byteLength;
+            }
 
-              switch(this.responseType) {
-                case ResponseType.KeepInMemory:
-                  if (isResBlob && options.auto) {
-                    let file = fs.openSync(this.destPath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
-                    fs.write(file.fd, totalBuffer).then(() => {
-                      callback(null, RNFB_RESPONSE.PATH, this.destPath, resInfo);
-                    }).catch((err: BusinessError) => {
-                      this.callErr(err, callback);
-                      console.error('write data to file failed with error message' + err.message);
-                    }).finally(() => {
-                      fs.closeSync(file);
-                    })
-                  } else {
-                    if (this.shouldTransFormFile(options)) {
-                      callback(null, RNFB_RESPONSE.PATH, this.destPath, resInfo);
-                      return;
-                    }
-
-                    let resData: any = null;
-                    if (this.responseFormat === ResponseFormat.BASE64) {
-                      let base64 = new util.Base64Helper();
-                      resData = base64.encodeToStringSync(result);
-                      callback(null, RNFB_RESPONSE.BASE64, resData, resInfo);
-                      return;
-                    }
-
-                    callback(null, RNFB_RESPONSE.UTF8, result.toString(), resInfo);
-                  }
-                  break;
-                case ResponseType.FileStorage:
+            switch(this.responseType) {
+              case ResponseType.KeepInMemory:
+                if (isResBlob && options.auto) {
                   let file = fs.openSync(this.destPath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
                   fs.write(file.fd, totalBuffer).then(() => {
                     callback(null, RNFB_RESPONSE.PATH, this.destPath, resInfo);
@@ -226,25 +200,51 @@ export default class ReactNativeBlobUtilReq {
                   }).finally(() => {
                     fs.closeSync(file);
                   })
-                  break;
-                default:
+                } else {
+                  if (this.shouldTransFormFile(options)) {
+                    callback(null, RNFB_RESPONSE.PATH, this.destPath, resInfo);
+                    return;
+                  }
+
+                  let resData: any = null;
+                  if (this.responseFormat === ResponseFormat.BASE64) {
+                    let base64 = new util.Base64Helper();
+                    resData = base64.encodeToStringSync(result);
+                    callback(null, RNFB_RESPONSE.BASE64, resData, resInfo);
+                    return;
+                  }
+
                   callback(null, RNFB_RESPONSE.UTF8, result.toString(), resInfo);
-                  break;
-              }
-            } else {
-              // 数据上传
-              callback(null, RNFB_RESPONSE.UTF8, this.totalReceiveData.toString(), resInfo);
+                }
+                break;
+              case ResponseType.FileStorage:
+                let file = fs.openSync(this.destPath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
+                fs.write(file.fd, totalBuffer).then(() => {
+                  callback(null, RNFB_RESPONSE.PATH, this.destPath, resInfo);
+                }).catch((err: BusinessError) => {
+                  this.callErr(err, callback);
+                  console.error('write data to file failed with error message' + err.message);
+                }).finally(() => {
+                  fs.closeSync(file);
+                })
+                break;
+              default:
+                callback(null, RNFB_RESPONSE.UTF8, result.toString(), resInfo);
+                break;
             }
-            this.cancelRequest();
           } else {
-            this.cancelRequest();
-            this.callErr(JSON.stringify({
-              code: err.code,
-              message: err.message
-            }), callback);
+            // 数据上传
+            callback(null, RNFB_RESPONSE.UTF8, this.totalReceiveData.toString(), resInfo);
           }
-        })
-      }
+          this.cancelRequest();
+        } else {
+          this.cancelRequest();
+          this.callErr(JSON.stringify({
+            code: err.code,
+            message: err.message
+          }), callback);
+        }
+      })
     } catch(err) {
       this.cancelRequest();
       this.callErr(err, callback);

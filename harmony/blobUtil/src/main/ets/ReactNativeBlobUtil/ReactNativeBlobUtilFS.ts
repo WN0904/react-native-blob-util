@@ -209,7 +209,6 @@ export default class ReactNativeBlobUtilFS {
       if(!createFileASCII){
         let file = fs.openSync(path, fs.OpenMode.CREATE);
         fs.closeSync(file);
-        reject("File at path `" + path + "` already exists")
       }
       let file = fs.openSync(path, fs.OpenMode.READ_WRITE);
       let buf = buffer.from(data);
