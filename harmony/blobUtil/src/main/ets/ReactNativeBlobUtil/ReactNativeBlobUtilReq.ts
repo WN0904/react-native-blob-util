@@ -163,7 +163,7 @@ export default class ReactNativeBlobUtilReq {
           }
         })
 
-        this.httpRequest.on('headerReceive', (header: Object) => {
+        this.httpRequest.on('headersReceive', (header: Object) => {
           this.resHeaders = header;
         })
 
@@ -320,7 +320,7 @@ export default class ReactNativeBlobUtilReq {
   }
 
   sendUploadProgress() {
-    this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilProgress', {
+    this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilProgress-upload', {
       taskId: this.taskId,
       written: this.uploadInfo?.sendSize,
       total: this.uploadInfo?.totalSize,

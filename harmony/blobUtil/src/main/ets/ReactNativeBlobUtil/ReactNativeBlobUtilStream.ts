@@ -125,13 +125,10 @@ export default class ReactNativeBlobUtilStream {
       ss.stream.write(data, {
         encoding: ((ss.encoding === 'utf8') ? 'utf-8' : ss.encoding)
       }, (err, bytesWritten) => {
-        console.log(JSON.stringify(bytesWritten)+'bytesWritten')
         if (err) {
           callback("writeChunk failed with error message: " + err.message + ", error code: " + err.code);
         } else {
-          if (bytesWritten) {
-            callback('');
-          }
+          bytesWritten && callback('');
         }
       });
     }catch (err){
@@ -169,6 +166,7 @@ export default class ReactNativeBlobUtilStream {
       callback("close failed with error message: " + err.message + ", error code: " + err.code);
     } else {
       console.info("close stream succeed");
+      callback('')
     }
     })
   }
