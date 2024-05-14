@@ -61,44 +61,58 @@ export default class ReactNativeBlobUtilStream {
   }
 
   readStream(filePath: string, encoding: string, bufferSize: number, tick: number, streamId: string): void {
-    let inputStream = fs.createStreamSync(filePath, 'r+');
-    let buf = new ArrayBuffer(bufferSize);
-    let readSize = 0;
-    let readLen = inputStream.readSync(buf, {
-      offset: readSize
-    });
-    readSize += readLen;
-    if (readLen === bufferSize) {
-      while (readLen > 0) {
-        readLen = inputStream.readSync(buf, {
-          offset: readSize
-        });
-        readSize += readLen
+    try {
+      let inputStream = fs.createStreamSync(filePath, 'r+');
+      let buf = new ArrayBuffer(bufferSize);
+      let readSize = 0;
+      let readLen = inputStream.readSync(buf, {
+        offset: readSize
+      });
+      readSize += readLen;
+      if (readLen === bufferSize) {
+        while (readLen > 0) {
+          readLen = inputStream.readSync(buf, {
+            offset: readSize
+          });
+          readSize += readLen
+        }
       }
+      inputStream.closeSync();
+      let bytes = buffer.from(buf, 0, readLen);
+      let detail = null;
+
+      if (encoding.toLowerCase() === 'utf8') {
+        detail = bytes.toString('utf-8');
+      } else if (encoding.toLowerCase() === 'base64') {
+        detail = buffer.transcode(bytes, 'utf-8', 'base64');
+      } else if (encoding.toLowerCase() === 'ascii') {
+        detail = buffer.transcode(bytes, 'utf-8', 'ascii');
+      }
+
+      this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilFilesystem', {
+        event: 'data',
+        streamId: streamId,
+        detail: detail
+      })
+
+      this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilFilesystem', {
+        event: 'end',
+        streamId: streamId,
+        detail: ''
+      })
+    } catch (err) {
+      let errMsg = '';
+      if (Number(err.code) === 13900042) {
+        errMsg = 'readStream failed with error message: No such file or directory' + ', error code: 13900002';
+      } else {
+        errMsg = 'readStream failed with error message: ' + err.message + ', error code: ' + err.code;
+      }
+      this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilFilesystem', {
+        event: 'err',
+        streamId: streamId,
+        detail: errMsg
+      })
     }
-    inputStream.closeSync();
-    let bytes = buffer.from(buf, 0, readLen);
-    let detail = null;
-
-    if (encoding.toLowerCase() === 'utf8') {
-      detail = bytes.toString('utf-8');
-    } else if (encoding.toLowerCase() === 'base64') {
-      detail = buffer.transcode(bytes, 'utf-8', 'base64');
-    } else if (encoding.toLowerCase() === 'ascii') {
-      detail = buffer.transcode(bytes, 'utf-8', 'ascii');
-    }
-
-    this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilFilesystem', {
-      event: 'data',
-      streamId: streamId,
-      detail: detail
-    })
-
-    this.ctx.rnInstance.emitDeviceEvent('ReactNativeBlobUtilFilesystem', {
-      event: 'end',
-      streamId: streamId,
-      detail: ''
-    })
   }
 
 

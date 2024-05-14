@@ -210,20 +210,19 @@ export default class ReactNativeBlobUtilFS {
         let file = fs.openSync(path, fs.OpenMode.CREATE);
         fs.closeSync(file);
         reject("File at path `" + path + "` already exists")
-      }else{
-        let file = fs.openSync(path, fs.OpenMode.READ_WRITE);
-        let buf = buffer.from(data);
-        fs.write(file.fd,buf.toString('utf-8'),{encoding:'utf-8'},(err, writeLen) => {
-          if (err) {
-            reject(err);
-            console.error("write failed with error message: " + err.message + ", error code: " + err.code);
-          } else {
-            console.info("write data to file succeed and size is:" + writeLen);
-            resolve();
-          }
-          fs.closeSync(file);
-        });
       }
+      let file = fs.openSync(path, fs.OpenMode.READ_WRITE);
+      let buf = buffer.from(data);
+      fs.write(file.fd,buf.toString('utf-8'),{encoding:'utf-8'},(err, writeLen) => {
+        if (err) {
+          reject(err);
+          console.error("write failed with error message: " + err.message + ", error code: " + err.code);
+        } else {
+          console.info("write data to file succeed and size is:" + writeLen);
+          resolve();
+        }
+        fs.closeSync(file);
+      });
     })
   }
 

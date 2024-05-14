@@ -130,6 +130,12 @@ export default class ReactNativeBlobUtilReq {
 
       // 组装http请求数据格式
       if (form) {
+        let path = Array.isArray(form) ? form[0].data : form;
+        let buffers: ArrayBuffer = this.getABData(this.isPathStr(path), path);
+        if (buffers.byteLength === 0) {
+          this.callErr('getABData fail, check file is exists', callback)
+          return;
+        }
         if (Array.isArray(form)) {
           reqOptions.multiFormDataList = form.map((item: MultiFormType): http.MultiFormData =>({
             name: item.name,
@@ -232,7 +238,10 @@ export default class ReactNativeBlobUtilReq {
             this.cancelRequest();
           } else {
             this.cancelRequest();
-            this.callErr(err, callback);
+            this.callErr(JSON.stringify({
+              code: err.code,
+              message: err.message
+            }), callback);
           }
         })
       }
@@ -248,19 +257,25 @@ export default class ReactNativeBlobUtilReq {
 
   getABData(isPath: boolean, data: string): ArrayBuffer {
     let buf: ArrayBuffer;
-    if (isPath) {
-      if (data.indexOf('/') !== 0) {
-        data = data.replace(FILE_PREFIX, '').replace(CONTENT_PREFIX, '');
+    try {
+      if (isPath) {
+        if (data.indexOf('/') !== 0) {
+          data = data.replace(FILE_PREFIX, '').replace(CONTENT_PREFIX, '');
+        }
+        let fileInfo = fs.statSync(this.context.filesDir + data);
+        let file = fs.openSync(this.context.filesDir + data, fs.OpenMode.READ_WRITE);
+        buf = new ArrayBuffer(fileInfo.size);
+        fs.readSync(file.fd, buf);
+        fs.closeSync(file);
+      } else {
+        buf = buffer.alloc(data.length, data, 'base64').buffer;
       }
-      let fileInfo = fs.statSync(this.context.filesDir + data);
-      let file = fs.openSync(this.context.filesDir + data, fs.OpenMode.READ_WRITE);
-      buf = new ArrayBuffer(fileInfo.size);
-      fs.readSync(file.fd, buf);
-      fs.closeSync(file);
-    } else {
-      buf = buffer.alloc(data.length, data, 'base64').buffer;
+      return buf;
+    } catch(err) {
+      console.error("getABData failed with error message: " + err.message + ", error code: " + err.code);
+      buf = new ArrayBuffer(0)
+      return buf;
     }
-    return buf;
   }
 
   onProgressReport(interval: number, count: number) {
@@ -357,10 +372,13 @@ export default class ReactNativeBlobUtilReq {
 
   // 取消请求，清除回调
   cancelRequest() {
+    this.totalReceiveData = [];
     this.httpRequest.destroy();
     this.httpRequest.off('dataReceiveProgress');
     this.httpRequest.off('dataSendProgress');
     this.httpRequest.off('dataReceive');
     this.httpRequest.off('headerReceive');
+    clearInterval(this.downloadTimer);
+    clearInterval(this.uploadTimer);
   }
 }
