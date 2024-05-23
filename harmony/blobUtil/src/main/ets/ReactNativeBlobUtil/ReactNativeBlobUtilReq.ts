@@ -218,16 +218,20 @@ export default class ReactNativeBlobUtilReq {
                 }
                 break;
               case ResponseType.FileStorage:
-                let file = fs.openSync(this.destPath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
-                fs.write(file.fd, totalBuffer).then(() => {
-                  callback(null, RNFB_RESPONSE.PATH, this.destPath, resInfo);
-                }).catch((err: BusinessError) => {
-                  this.callErr(err, callback);
-                  console.error('write data to file failed with error message' + err.message);
-                }).finally(() => {
-                  fs.closeSync(file);
-                })
-                break;
+                try {
+                  let file = fs.openSync(this.destPath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
+                  fs.write(file.fd, totalBuffer).then(() => {
+                    callback(null, RNFB_RESPONSE.PATH, this.destPath, resInfo);
+                  }).catch((err: BusinessError) => {
+                    this.callErr(err, callback);
+                    console.error('write data to file failed with error message' + err.message);
+                  }).finally(() => {
+                    fs.closeSync(file);
+                  })
+                  break;
+                }catch(err){
+                  console.log(`FileStorage err: ${err}`)
+                }
               default:
                 callback(null, RNFB_RESPONSE.UTF8, result.toString(), resInfo);
                 break;
