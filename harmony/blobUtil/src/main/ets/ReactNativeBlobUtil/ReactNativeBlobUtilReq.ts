@@ -89,7 +89,7 @@ export default class ReactNativeBlobUtilReq {
     let tmpPath = this.context.cacheDir + '/ReactNativeBlobUtilTmp_' + taskId;
 
     if (options.path) {
-      this.destPath = this.context.filesDir + options.path;
+      this.destPath = options.path;
     } else if (options.fileCache) {
       this.destPath = tmpPath + ext;
     }
