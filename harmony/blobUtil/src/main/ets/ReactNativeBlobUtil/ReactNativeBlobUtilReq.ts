@@ -213,21 +213,44 @@ export default class ReactNativeBlobUtilReq {
                     callback(null, RNFB_RESPONSE.BASE64, resData, resInfo);
                     return;
                   }
-
                   callback(null, RNFB_RESPONSE.UTF8, result.toString(), resInfo);
                 }
                 break;
               case ResponseType.FileStorage:
                 try {
-                  let file = fs.openSync(this.destPath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
-                  fs.write(file.fd, totalBuffer).then(() => {
-                    callback(null, RNFB_RESPONSE.PATH, this.destPath, resInfo);
-                  }).catch((err: BusinessError) => {
-                    this.callErr(err, callback);
-                    console.error('write data to file failed with error message' + err.message);
-                  }).finally(() => {
-                    fs.closeSync(file);
-                  })
+                  let isExist = fs.accessSync(this.destPath.substring(0,this.destPath.lastIndexOf('/')))
+                  if(!isExist) {
+                    // 如果不存在目录 创建
+                    fs.mkdir(this.destPath.substring(0,this.destPath.lastIndexOf('/')),true,(err:BusinessError) =>{
+                      if(err) {
+                        if(err.code == 13900015) {
+                          console.log('floder exist')
+                        } else {
+                          console.log(`Directory could not be created ${err.message} ${err.code}`)
+                        }
+                      } else {
+                        let file = fs.openSync(this.destPath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
+                        fs.write(file.fd, totalBuffer).then(() => {
+                          callback(null, RNFB_RESPONSE.PATH, this.destPath, resInfo);
+                        }).catch((err: BusinessError) => {
+                          this.callErr(err, callback);
+                          console.error('write data to file failed with error message1' + err.message);
+                        }).finally(() => {
+                          fs.closeSync(file);
+                        })
+                      }
+                    })
+                  } else {
+                    let file = fs.openSync(this.destPath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
+                    fs.write(file.fd, totalBuffer).then(() => {
+                      callback(null, RNFB_RESPONSE.PATH, this.destPath, resInfo);
+                    }).catch((err: BusinessError) => {
+                      this.callErr(err, callback);
+                      console.error('write data to file failed with error message2' + err.message);
+                    }).finally(() => {
+                      fs.closeSync(file);
+                    })
+                  }
                   break;
                 }catch(err){
                   console.log(`FileStorage err: ${err}`)
