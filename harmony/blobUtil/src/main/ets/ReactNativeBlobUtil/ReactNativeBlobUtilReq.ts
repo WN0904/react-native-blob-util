@@ -11,6 +11,9 @@ import ConfigType, { ResponseInfo, RespType } from './ReactNativeBlobUtilConfig'
 const FILE_PREFIX = 'ReactNativeBlobUtil-file://';
 const CONTENT_PREFIX = 'ReactNativeBlobUtil-content://';
 
+enum RES_CODE {
+  FloderExist = 13900015
+}
 enum ResponseFormat {
   Auto,
   UTF8,
@@ -218,15 +221,15 @@ export default class ReactNativeBlobUtilReq {
                 break;
               case ResponseType.FileStorage:
                 try {
-                  let isExist = fs.accessSync(this.destPath.substring(0,this.destPath.lastIndexOf('/')))
+                  let isExist = fs.accessSync(this.destPath.substring(0,this.destPath.lastIndexOf('/')));
                   if(!isExist) {
                     // 如果不存在目录 创建
                     fs.mkdir(this.destPath.substring(0,this.destPath.lastIndexOf('/')),true,(err:BusinessError) =>{
                       if(err) {
-                        if(err.code == 13900015) {
-                          console.log('floder exist')
+                        if(err.code == RES_CODE.FloderExist) {
+                          console.log('floder exist');
                         } else {
-                          console.log(`Directory could not be created ${err.message} ${err.code}`)
+                          console.log(`Directory could not be created ${err.message} ${err.code}`);
                         }
                       } else {
                         let file = fs.openSync(this.destPath, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
