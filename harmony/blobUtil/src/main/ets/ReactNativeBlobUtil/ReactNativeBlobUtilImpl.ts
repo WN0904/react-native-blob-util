@@ -117,6 +117,10 @@ export default class ReactNativeBlobUtilImpl {
     return this.reactNativeBlobUtilFS.readFile(path, encoding, transformFile)
   }
 
+    presentPreview(path: string, scheme: string): Promise<any> {
+        return this.reactNativeBlobUtilFS.presentPreview(path, scheme)
+    }
+
   lstat(path: string, callback: (err: any, stat: any) => void) {
     this.reactNativeBlobUtilFS.lstat(path, callback)
   }

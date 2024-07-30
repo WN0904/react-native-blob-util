@@ -102,6 +102,10 @@ export class BlobUtilTurboModule extends TurboModule {
     return this.reactNativeBlobUtilImpl.readFile(path,encoding,transformFile)
   }
 
+  presentPreview(path: string, scheme: string):Promise<any>{
+      return this.reactNativeBlobUtilImpl.presentPreview(path, scheme)
+  }
+
   lstat(path: string, callback: (err: any, stat: any) => void){
    this.reactNativeBlobUtilImpl.lstat(path,callback)
   }

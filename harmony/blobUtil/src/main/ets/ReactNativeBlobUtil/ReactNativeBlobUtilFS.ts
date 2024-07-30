@@ -6,6 +6,8 @@ import { promptAction } from '@kit.ArkUI';
 import buffer from '@ohos.buffer';
 import hash from '@ohos.file.hash';
 import statvfs from "@ohos.file.statvfs"
+import {filePreview} from "@kit.PreviewKit";
+import fileUri from "@ohos.file.fileuri";
 
 export default class ReactNativeBlobUtilFS {
 
@@ -255,6 +257,85 @@ export default class ReactNativeBlobUtilFS {
       });
     })
   };
+
+    getMainType(value: string): string {
+        let mainType = '';
+        let objType = {
+            'txt':'text/plain',
+            'cpp':'text/x-c++src',
+            'c':'text/x-csrc',
+            'h':'text/x-chdr',
+            'java':'text/x-java',
+            'xhtml':'application/xhtml+xml',
+            'xml':'text/xml',
+            'html':'text/html',
+            'htm':'text/html',
+            'jpg':'image/jpeg',
+            'png':'image/png',
+            'gif':'image/gif',
+            'webp':'image/webp',
+            'bmp':'image/bmp',
+            'svg':'image/svg+xml',
+            'm4a':'audio/mp4a-latm',
+            'aac':'audio/aac',
+            'mp3':'audio/mpeg',
+            'ogg':'audio/ogg',
+            'wav':'audio/x-wav',
+            'mp4':'video/mp4',
+            'mkv':'video/x-matroska',
+            'ts':'video/mp2ts',
+        }
+        mainType = objType[value];
+        return mainType;
+    }
+
+    presentPreview(path: string, scheme: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            try {
+                let uiContext = getContext(this);
+                // 如果不是媒体路径 给沙箱路径下写文件 将沙箱路径转换为uri 预览
+                if(!path.startsWith('file://media')){
+                    let srcPath = path;
+                    var dstPath = uiContext.filesDir + '/' + path.substring(path.lastIndexOf('/') + 1);
+                    fs.copyFileSync(srcPath.replace('file://',''), dstPath);
+                    // 获取文件的沙箱路径
+                    let pathInSandbox = uiContext.filesDir + '/' + path.substring(path.lastIndexOf('/') + 1);
+                    // 将沙箱路径转换为uri
+                    path = fileUri.getUriFromPath(pathInSandbox);
+                }
+
+                filePreview.canPreview(uiContext,path)
+                    .then((result) => {
+                        if(result) {
+                            let fileInfo: filePreview.PreviewInfo = {
+                                title: path.substring(path.lastIndexOf('/') + 1),
+                                uri: path,
+                                mimeType:this.getMainType(path.substring(path.lastIndexOf('.') + 1)),
+                            }
+                            filePreview.openPreview(uiContext,fileInfo)
+                                .then(() => {
+                                    console.log(`success to openpreview`)
+                                    resolve('succeeded in opening preview')
+                                })
+                                .catch((err:BusinessError) => {
+                                    console.error(`failed to open preview`)
+                                    reject(err)
+                                })
+                        } else {
+                            console.error(`path can not Preview,please check`)
+                            reject(`err`)
+                        }
+                    })
+                    .catch((err:BusinessError) => {
+                        console.error(`failed to previewed,err.code = ${err.code},err.message = ${err.message}`)
+                        reject(err)
+                    })
+            } catch (err) {
+                console.error(`presentPreview failed with error message,err.code : ${err.code},err.message : ${err.message}`)
+                reject(err)
+            }
+        })
+    };
 
   readFile(path: string, encoding: string, transformFile: boolean): Promise<any> {
     return new Promise((resolve, reject) => {

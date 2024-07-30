@@ -36,9 +36,9 @@ function presentOpenInMenu(path: string, scheme: string) {
  * @return {Promise}
  */
 function presentPreview(path: string, scheme: string) {
-  if (Platform.OS === "ios")
+  if (Platform.OS === "ios" || Platform.OS === "harmony")
     return ReactNativeBlobUtil.presentPreview("file://" + path, scheme);
-  else return Promise.reject("ReactNativeBlobUtil.previewDocument only supports IOS.");
+  else return Promise.reject("ReactNativeBlobUtil.previewDocument only supports IOS and harmony.");
 }
 
 /**
