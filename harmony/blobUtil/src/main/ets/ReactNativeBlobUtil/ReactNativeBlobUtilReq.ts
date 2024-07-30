@@ -10,6 +10,7 @@ import ConfigType, { ResponseInfo, RespType } from './ReactNativeBlobUtilConfig'
 
 const FILE_PREFIX = 'ReactNativeBlobUtil-file://';
 const CONTENT_PREFIX = 'ReactNativeBlobUtil-content://';
+const CONTENT_FILE = 'file://';
 
 enum RES_CODE {
   FloderExist = 13900015
@@ -290,10 +291,10 @@ export default class ReactNativeBlobUtilReq {
     try {
       if (isPath) {
         if (data.indexOf('/') !== 0) {
-          data = data.replace(FILE_PREFIX, '').replace(CONTENT_PREFIX, '');
+          data = data.replace(FILE_PREFIX, '').replace(CONTENT_PREFIX, '').replace(CONTENT_FILE, '');
         }
-        let fileInfo = fs.statSync(this.context.filesDir + data);
-        let file = fs.openSync(this.context.filesDir + data, fs.OpenMode.READ_WRITE);
+        let fileInfo = fs.statSync(data);
+        let file = fs.openSync(data, fs.OpenMode.READ_WRITE);
         buf = new ArrayBuffer(fileInfo.size);
         fs.readSync(file.fd, buf);
         fs.closeSync(file);

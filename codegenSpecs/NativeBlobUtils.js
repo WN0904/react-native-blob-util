@@ -58,7 +58,7 @@ export interface Spec extends TurboModule {
     +slice: (src: string, dest: string, start: number, end: number) => Promise<string>;
     // +presentOptionsMenu: (uri: string, scheme: string) => Promise<Array<any>>;
     // +presentOpenInMenu: (uri: string, scheme: string) => Promise<Array<any>>;
-    // +presentPreview: (uri: string, scheme: string) => Promise<Array<any>>;
+    +presentPreview: (uri: string, scheme: string) => Promise<Array<any>>;
     // +excludeFromBackupKey: (url: string) => Promise<Array<any>>;
     +df: (callback: (value: Array<any>) => void) => void;
     //+emitExpiredEvent: (callback: (value: string) => void) => void; // The callback is not really used here
