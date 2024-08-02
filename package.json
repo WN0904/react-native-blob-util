@@ -30,12 +30,7 @@
         "username": "RonRadtke"
     },
     "harmony":{
-        "alias":"react-native-blob-util",
-        "codegenConfig": {
-            "specPaths": [
-              "./codegenSpecs/NativeBlobUtils.js"
-            ]
-          }
+        "alias":"react-native-blob-util"
     },
     "license": "MIT",
     "contributors": [
