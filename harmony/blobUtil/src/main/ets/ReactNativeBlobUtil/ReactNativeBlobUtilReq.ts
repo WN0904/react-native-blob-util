@@ -5,7 +5,7 @@ import util from '@ohos.util';
 import wifiManage from '@ohos.wifiManager';
 import { BusinessError } from '@ohos.base';
 import common from '@ohos.app.ability.common';
-import { TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
+import { RNOHContext } from '@rnoh/react-native-openharmony/ts';
 import ConfigType, { ResponseInfo, RespType } from './ReactNativeBlobUtilConfig';
 
 const FILE_PREFIX = 'ReactNativeBlobUtil-file://';
@@ -50,7 +50,7 @@ class DataSendProgressInfo {
 }
 
 export default class ReactNativeBlobUtilReq {
-  private ctx: TurboModuleContext | undefined = undefined
+  private ctx: RNOHContext | undefined = undefined
   private context: common.UIAbilityContext | undefined = undefined
 
   destPath: string;
@@ -59,6 +59,7 @@ export default class ReactNativeBlobUtilReq {
   responseFormat: ResponseFormat = ResponseFormat.Auto;
   resHeaders: Object;
   totalReceiveData: Array<ArrayBuffer> = [];
+  allData: Array<any> = [];
 
   downloadTimer: number = 0;
   uploadTimer: number = 0;
@@ -72,7 +73,7 @@ export default class ReactNativeBlobUtilReq {
   }
   taskId: string;
 
-  constructor(ctx: TurboModuleContext, context: common.UIAbilityContext) {
+  constructor(ctx: RNOHContext, context: common.UIAbilityContext) {
     this.ctx = ctx;
     this.context = context;
     this.httpRequest = http.createHttp();
@@ -154,6 +155,10 @@ export default class ReactNativeBlobUtilReq {
       }
 
       this.httpRequest.on('dataReceive', (data: ArrayBuffer) => {
+        // 解码成字符串
+        var decodedString = String.fromCharCode.apply(null, new Uint8Array(data))
+        console.log(`decodedString: ${decodedString}`)
+        this.allData.push(decodedString)
         this.totalReceiveData.push(data);
       })
 
@@ -217,7 +222,7 @@ export default class ReactNativeBlobUtilReq {
                     callback(null, RNFB_RESPONSE.BASE64, resData, resInfo);
                     return;
                   }
-                  callback(null, RNFB_RESPONSE.UTF8, result.toString(), resInfo);
+                  callback(null, RNFB_RESPONSE.UTF8, JSON.stringify(this.allData), resInfo);
                 }
                 break;
               case ResponseType.FileStorage:
