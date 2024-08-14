@@ -222,7 +222,11 @@ export default class ReactNativeBlobUtilReq {
                     callback(null, RNFB_RESPONSE.BASE64, resData, resInfo);
                     return;
                   }
-                  callback(null, RNFB_RESPONSE.UTF8, JSON.stringify(this.allData), resInfo);
+                  if(this.allData.length === 1) {
+                    callback(null, RNFB_RESPONSE.UTF8, this.allData[0], resInfo);
+                  } else {
+                    callback(null, RNFB_RESPONSE.UTF8, JSON.stringify(this.allData), resInfo);
+                  }
                 }
                 break;
               case ResponseType.FileStorage:
