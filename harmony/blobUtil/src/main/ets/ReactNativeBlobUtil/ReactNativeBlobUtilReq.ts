@@ -369,7 +369,7 @@ export default class ReactNativeBlobUtilReq {
 
   // 判断请求的数据是否是blob
   isBlobResponse(headers: Object, options: ConfigType) {
-    let cType: string = (headers['content-type'] || headers['Content-Type']).toLowerCase();
+    let cType: string = String((headers['content-type'] || headers['Content-Type']) ?? '').toLowerCase();
     let isText: boolean = cType.indexOf('text/') !== -1;
     let isJson: boolean = cType.indexOf('application/json') !== -1;
     let isCustomBinary: boolean = (options.binaryContentTypes?.length || 0) > 0;
