@@ -94,7 +94,7 @@ export class BlobUtilTurboModule extends TurboModule {
     this.reactNativeBlobUtilImpl.writeArrayChunk(streamId,withArray,callback)
   }
 
-  exists(path: string, callback: (value: boolean) => void){
+  exists(path: string, callback: (value: boolean,isDir?:boolean) => void){
     this.reactNativeBlobUtilImpl.exists(path,callback)
   }
 

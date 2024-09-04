@@ -109,7 +109,7 @@ export default class ReactNativeBlobUtilImpl {
     this.reactNativeBlobUtilStream.writeArrayChunk(streamId, withArray, callback)
   }
 
-  exists(path: string, callback: (value: boolean) => void) {
+  exists(path: string, callback: (value: boolean,isDir?:boolean) => void) {
     this.reactNativeBlobUtilFS.exists(path, callback)
   }
 
