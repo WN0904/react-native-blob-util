@@ -33,7 +33,7 @@ export interface Spec extends TurboModule {
     +createFileASCII: (path: string, data: Array<any>) => Promise<void>;
     +pathForAppGroup: (groupName: string) => Promise<string>;
     +syncPathAppGroup: (groupName: string) => string;
-    +exists: (path: string, callback: (value: Array<boolean>) => void) => void;
+    +exists: (path: string, callback: (value:boolean,isDir?:boolean) => void) => void;
     +writeFile: (path: string, encoding: string, data: string, transformFile: boolean, append: boolean) => Promise<number>;
     +writeFileArray: (path: string, data: Array<any>, append: boolean) => Promise<number>;
     +writeStream: (path: string, withEncoding: string, appendData: boolean, callback: (value: Array<any>) => void) => void;
