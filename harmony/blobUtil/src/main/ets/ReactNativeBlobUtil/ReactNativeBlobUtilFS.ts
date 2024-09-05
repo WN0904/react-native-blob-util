@@ -350,7 +350,7 @@ export default class ReactNativeBlobUtilFS {
             let bytes = buffer.from(buf, 0, readLen);
             switch (encoding.toLowerCase()) {
               case "base64":
-                resolve(buffer.transcode(bytes, 'utf-8', 'base64'));
+                resolve(bytes.toString("base64"));
                 break;
               case "ascii":
                 resolve(buffer.transcode(bytes, 'utf-8', 'ascii'));
