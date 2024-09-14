@@ -146,7 +146,11 @@ export default class ReactNativeBlobUtilFS {
   writeFile(path: string,encoding: string,data: string ,transformFile: boolean, append: boolean):Promise<number> {
     return new Promise((resolve,reject) => {
       try {
+        let accessRes = fs.accessSync(path);
         let file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
+        if (append && accessRes) {
+          file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.APPEND);
+        }
         let writeLen = fs.writeSync(file.fd,data);
         if(writeLen==-1){
           console.log("write data to file succeed and size is:" + writeLen)
