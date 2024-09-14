@@ -326,6 +326,9 @@ export default class ReactNativeBlobUtilReq {
         this.sendDownloadProgress();
       }
       if (count === -1) {
+        if (this.downloadTimer) {
+          clearInterval(this.downloadTimer);
+        }
         this.downloadTimer = setInterval(() => {
           if (!this.downloadInfo?.totalSize) return;
           this.sendDownloadProgress();
