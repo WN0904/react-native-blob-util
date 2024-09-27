@@ -66,8 +66,8 @@ export class BlobUtilTurboModule extends TurboModule {
   writeStream(path: string, encoding: string, appendData: boolean, callback: (errCode,errMsg,streamId?:string) => void) {
     this.reactNativeBlobUtilImpl.writeStream(path,encoding,appendData,callback)
   }
-  readStream(path:string,encoding:string,bufferSize:number,tick:number,streamId:string):void{
-    return this.reactNativeBlobUtilImpl.readStream(path,encoding,bufferSize,tick,streamId)
+  readStream(path: string, encoding: string, bufferSize: number, tick: number, streamId: string): Promise<void> {
+    return this.reactNativeBlobUtilImpl.readStream(path, encoding, bufferSize, tick, streamId)
   }
 
   unlink(path:string, callback: (err: any) => void){
@@ -94,8 +94,8 @@ export class BlobUtilTurboModule extends TurboModule {
     this.reactNativeBlobUtilImpl.writeArrayChunk(streamId,withArray,callback)
   }
 
-  exists(path: string, callback: (value: boolean) => void){
-    this.reactNativeBlobUtilImpl.exists(path,callback)
+  exists(path: string, callback: (value: boolean, isDir?: boolean) => void) {
+    this.reactNativeBlobUtilImpl.exists(path, callback)
   }
 
   readFile(path: string, encoding: string, transformFile: boolean):Promise<any>{

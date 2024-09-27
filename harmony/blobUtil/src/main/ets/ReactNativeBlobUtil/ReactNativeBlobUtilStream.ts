@@ -46,7 +46,7 @@ export default class ReactNativeBlobUtilStream {
     let file = fs.openSync(filePath);
     this.encoding = encoding;
     try {
-      let stream = await fs.createStreamSync(filePath, "r+")
+      let stream = await fs.createStreamSync(filePath, 'a+')
       let uuid = util.generateRandomUUID(true);
       ReactNativeBlobUtilStream.fileStreams.set(uuid, {
         stream: stream,
@@ -60,7 +60,7 @@ export default class ReactNativeBlobUtilStream {
     }
   }
 
-  readStream(filePath: string, encoding: string, bufferSize: number, tick: number, streamId: string): void {
+  async readStream(filePath: string, encoding: string, bufferSize: number, tick: number, streamId: string): Promise<void> {
     try {
       let inputStream = fs.createStreamSync(filePath, 'r+');
       let buf = new ArrayBuffer(bufferSize);

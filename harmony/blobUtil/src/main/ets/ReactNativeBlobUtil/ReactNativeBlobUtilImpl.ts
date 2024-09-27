@@ -65,7 +65,7 @@ export default class ReactNativeBlobUtilImpl {
     this.reactNativeBlobUtilStream.writeStream(path, encoding, appendData, callback);
   }
 
-  readStream(filePath: string, encoding: string, bufferSize: number, tick: number, streamId: string): void {
+  readStream(filePath: string, encoding: string, bufferSize: number, tick: number, streamId: string): Promise<void> {
     return this.reactNativeBlobUtilStream.readStream(filePath, encoding, bufferSize, tick, streamId);
   }
 
@@ -109,7 +109,7 @@ export default class ReactNativeBlobUtilImpl {
     this.reactNativeBlobUtilStream.writeArrayChunk(streamId, withArray, callback)
   }
 
-  exists(path: string, callback: (value: boolean) => void) {
+  exists(path: string, callback: (value: boolean,isDir?:boolean) => void) {
     this.reactNativeBlobUtilFS.exists(path, callback)
   }
 
