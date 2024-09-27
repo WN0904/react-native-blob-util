@@ -292,7 +292,7 @@ export default class ReactNativeBlobUtilReq {
   }
 
   isPathStr(str: string): boolean {
-    return !!(str.indexOf(FILE_PREFIX) || str.indexOf(CONTENT_PREFIX) || str.indexOf('/') === 0);
+    return !!(str.startsWith(FILE_PREFIX) || str.startsWith(CONTENT_PREFIX) || str.indexOf('/') === 0);
   }
 
   getABData(isPath: boolean, data: string): ArrayBuffer {
