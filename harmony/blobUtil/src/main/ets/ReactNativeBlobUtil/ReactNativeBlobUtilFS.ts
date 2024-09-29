@@ -253,6 +253,7 @@ export default class ReactNativeBlobUtilFS {
     return new Promise((resolve, reject) => {
       fs.stat(path, (err: BusinessError, res: fs.Stat) => {
         if (err) {
+          callback(false, false);
           reject('File does not exist');
         } else {
           fs.access(path, (err: BusinessError, result: boolean) => {
