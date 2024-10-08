@@ -5,8 +5,9 @@ import util from '@ohos.util';
 import wifiManage from '@ohos.wifiManager';
 import { BusinessError } from '@ohos.base';
 import common from '@ohos.app.ability.common';
-import { TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
+import { RNOHContext } from '@rnoh/react-native-openharmony/ts';
 import ConfigType, { ResponseInfo, RespType } from './ReactNativeBlobUtilConfig';
+import Logger from '../Logger';
 
 const FILE_PREFIX = 'ReactNativeBlobUtil-file://';
 const CONTENT_PREFIX = 'ReactNativeBlobUtil-content://';
@@ -50,8 +51,8 @@ class DataSendProgressInfo {
 }
 
 export default class ReactNativeBlobUtilReq {
-  private ctx: TurboModuleContext | undefined = undefined
-  private context: common.UIAbilityContext | undefined = undefined
+  private ctx: RNOHContext;
+  private context: common.UIAbilityContext;
 
   destPath: string;
   httpRequest: http.HttpRequest;
@@ -59,6 +60,7 @@ export default class ReactNativeBlobUtilReq {
   responseFormat: ResponseFormat = ResponseFormat.Auto;
   resHeaders: Object;
   totalReceiveData: Array<ArrayBuffer> = [];
+  allData: Array<any> = [];
 
   downloadTimer: number = 0;
   uploadTimer: number = 0;
@@ -72,7 +74,7 @@ export default class ReactNativeBlobUtilReq {
   }
   taskId: string;
 
-  constructor(ctx: TurboModuleContext, context: common.UIAbilityContext) {
+  constructor(ctx: RNOHContext, context: common.UIAbilityContext) {
     this.ctx = ctx;
     this.context = context;
     this.httpRequest = http.createHttp();
@@ -154,6 +156,10 @@ export default class ReactNativeBlobUtilReq {
       }
 
       this.httpRequest.on('dataReceive', (data: ArrayBuffer) => {
+        // 解码成字符串
+        let decodedString = String.fromCharCode.apply(null, new Uint8Array(data))
+        Logger.debug(`decodedString: ${decodedString}`)
+        this.allData.push(decodedString)
         this.totalReceiveData.push(data);
       })
 
@@ -217,7 +223,11 @@ export default class ReactNativeBlobUtilReq {
                     callback(null, RNFB_RESPONSE.BASE64, resData, resInfo);
                     return;
                   }
-                  callback(null, RNFB_RESPONSE.UTF8, result.toString(), resInfo);
+                  if(this.allData.length === 1) {
+                    callback(null, RNFB_RESPONSE.UTF8, this.allData[0], resInfo);
+                  } else {
+                    callback(null, RNFB_RESPONSE.UTF8, JSON.stringify(this.allData), resInfo);
+                  }
                 }
                 break;
               case ResponseType.FileStorage:
@@ -283,7 +293,7 @@ export default class ReactNativeBlobUtilReq {
   }
 
   isPathStr(str: string): boolean {
-    return !!(str.indexOf(FILE_PREFIX) || str.indexOf(CONTENT_PREFIX) || str.indexOf('/') === 0);
+    return !!(str.startsWith(FILE_PREFIX) || str.startsWith(CONTENT_PREFIX) || str.indexOf('/') === 0);
   }
 
   getABData(isPath: boolean, data: string): ArrayBuffer {
@@ -317,6 +327,9 @@ export default class ReactNativeBlobUtilReq {
         this.sendDownloadProgress();
       }
       if (count === -1) {
+        if (this.downloadTimer) {
+          clearInterval(this.downloadTimer);
+        }
         this.downloadTimer = setInterval(() => {
           if (!this.downloadInfo?.totalSize) return;
           this.sendDownloadProgress();
@@ -360,7 +373,7 @@ export default class ReactNativeBlobUtilReq {
 
   // 判断请求的数据是否是blob
   isBlobResponse(headers: Object, options: ConfigType) {
-    let cType: string = (headers['content-type'] || headers['Content-Type']).toLowerCase();
+    let cType: string = String((headers['content-type'] || headers['Content-Type']) ?? '').toLowerCase();
     let isText: boolean = cType.indexOf('text/') !== -1;
     let isJson: boolean = cType.indexOf('application/json') !== -1;
     let isCustomBinary: boolean = (options.binaryContentTypes?.length || 0) > 0;

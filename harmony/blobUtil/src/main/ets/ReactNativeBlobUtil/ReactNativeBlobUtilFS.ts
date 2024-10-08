@@ -8,6 +8,7 @@ import hash from '@ohos.file.hash';
 import statvfs from "@ohos.file.statvfs"
 import {filePreview} from "@kit.PreviewKit";
 import fileUri from "@ohos.file.fileuri";
+import Logger from '../Logger';
 
 export default class ReactNativeBlobUtilFS {
 
@@ -54,6 +55,10 @@ export default class ReactNativeBlobUtilFS {
     }, {});
     return myObject;
   }
+
+  private readonly UTF_8: buffer.BufferEncoding = 'utf-8';
+  private readonly BASE64: buffer.BufferEncoding = 'base64';
+  private readonly ASCII: buffer.BufferEncoding = 'ascii';
 
   createFile(path:string,data:string,encoding:string):Promise<string> {
     return new Promise((res, rej) => {
@@ -143,22 +148,25 @@ export default class ReactNativeBlobUtilFS {
 
 
 
-  writeFile(path: string,encoding: string,data: string ,transformFile: boolean, append: boolean):Promise<number> {
-    return new Promise((resolve,reject) => {
+  writeFile(path: string, encoding: string, data: string, transformFile: boolean, append: boolean): Promise<number> {
+    return new Promise((resolve, reject) => {
       try {
+        let accessRes = fs.accessSync(path);
         let file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE);
-        let encod =buffer.transcode(buffer.from(data), 'utf-8', 'ascii')
-        let writeLen = fs.writeSync(file.fd,encod.buffer);
-        if(writeLen==-1){
-          console.log("write data to file succeed and size is:" + writeLen)
-        }else{
-          console.log('success')
+        if (append && accessRes) {
+          file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.APPEND);
+        }
+        let writeLen = fs.writeSync(file.fd, data);
+        if (writeLen === -1) {
+          Logger.info("write data to file succeed and size is:" + writeLen);
+        } else {
+          Logger.info("success");
         }
         fs.closeSync(file);
-        resolve(writeLen)
+        resolve(writeLen);
       } catch (err) {
         let errMsg = "writeFile failed with error message: " + err.message + ", error code: " + err.code;
-        console.error(errMsg);
+        Logger.error(errMsg);
         reject(errMsg);
       }
     })
@@ -246,16 +254,16 @@ export default class ReactNativeBlobUtilFS {
     })
   }
 
-  exists(path: string, callback: (value: boolean) => void) {
-    return new Promise((resolve, reject) => {
-      fs.access(path, (err: BusinessError, result: boolean) => {
-        if (err) {
-          reject('File does not exist');
-        } else {
-          callback(result);
-        }
-      });
-    })
+  async exists(path: string, callback: (value: boolean, isDir?: boolean) => void) {
+    let isDirectory = false;
+    let isExists = false;
+    try {
+      isDirectory = (await fs.stat(path)).isDirectory();
+      isExists = fs.accessSync(path);
+    } catch (error) {
+      Logger.error(error);
+    }
+    callback(isExists, isDirectory);
   };
 
     getMainType(value: string): string {
@@ -349,17 +357,20 @@ export default class ReactNativeBlobUtilFS {
           } else {
             let bytes = buffer.from(buf, 0, readLen);
             switch (encoding.toLowerCase()) {
-              case "base64":
-                resolve(bytes.toString("base64"));
+              case this.BASE64:
+                resolve(bytes.toString(this.BASE64));
                 break;
-              case "ascii":
-                resolve(buffer.transcode(bytes, 'utf-8', 'ascii'));
+              case this.ASCII: {
+                let ascUInt8Array: Uint8Array = new Uint8Array(bytes.buffer);
+                let ascArr = Array.from(ascUInt8Array);
+                resolve(ascArr);
                 break;
-              case "utf8":
-                resolve(bytes.toString('utf-8'));
+              }
+              case 'utf8':
+                resolve(bytes.toString(this.UTF_8));
                 break;
               default:
-                resolve(bytes.toString('utf-8'));
+                resolve(bytes.toString(this.UTF_8));
                 break;
             }
             fs.closeSync(file);
