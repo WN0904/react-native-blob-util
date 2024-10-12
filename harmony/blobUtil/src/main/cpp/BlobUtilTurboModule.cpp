@@ -51,7 +51,7 @@ static jsi::Value __hostFunction_BlobUtilTurboModule_writeStream(jsi::Runtime &r
 }
 static jsi::Value __hostFunction_BlobUtilTurboModule_mkdir(jsi::Runtime &rt, react::TurboModule &turboModule,
                                                                  const jsi::Value *args, size_t count) {
-    return static_cast<ArkTSTurboModule &>(turboModule).callAsync(rt, 'mkdir', args, count);
+    return static_cast<ArkTSTurboModule &>(turboModule).callAsync(rt, "mkdir", args, count);
 }
 
 static jsi::Value __hostFunction_BlobUtilTurboModule_readFile(jsi::Runtime &rt, react::TurboModule &turboModule,
